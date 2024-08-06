@@ -2,7 +2,7 @@
 
 namespace Test.Backend.Abstractions.Models.Dto.User.Response
 {
-    public class UpdateUserResponse : ResponseBase<UserDto>
+    public class UpdateUserResponse : ResponseBase<UserBaseDto>
     {
     }
 }

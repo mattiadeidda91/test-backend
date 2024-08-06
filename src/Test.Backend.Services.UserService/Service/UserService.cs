@@ -7,10 +7,11 @@ namespace Test.Backend.Services.UserService.Service
 {
     public class UserService : IUserService
     {
-        private readonly IApplicationDbContext dataContext;
-        public UserService(IApplicationDbContext dataContext)
+        private readonly IUserDbContext userContext;
+
+        public UserService(IUserDbContext userContext)
         {
-            this.dataContext = dataContext;
+            this.userContext = userContext;
         }
 
         public async Task<IEnumerable<User>> GetAsync()
@@ -23,7 +24,7 @@ namespace Test.Backend.Services.UserService.Service
             //    .OrderBy(p => p.LastName)
             //    .ToListAsync();
 
-            var users = await dataContext.GetData<User>()
+            var users = await userContext.GetData<User>()
                 .OrderBy(p => p.LastName)
                 .ToListAsync();
 
@@ -40,7 +41,7 @@ namespace Test.Backend.Services.UserService.Service
             //    .Where(u => u.Id == id)
             //    .FirstOrDefaultAsync();
 
-            var user = await dataContext.GetData<User>()
+            var user = await userContext.GetData<User>()
                 .Where(u => u.Id == id)
                 .FirstOrDefaultAsync();
 
@@ -53,8 +54,8 @@ namespace Test.Backend.Services.UserService.Service
 
             if (user != null)
             {
-                dataContext.Delete(user);
-                await dataContext.SaveAsync();
+                userContext.Delete(user);
+                await userContext.SaveAsync();
 
                 return true;
             }
@@ -64,14 +65,14 @@ namespace Test.Backend.Services.UserService.Service
 
         public async Task UpdateAsync(User address)
         {
-            dataContext.Update(address);
-            await dataContext.SaveAsync();
+            userContext.Update(address);
+            await userContext.SaveAsync();
         }
 
         public async Task SaveAsync(User user)
         {
-            dataContext.Insert(user);
-            await dataContext.SaveAsync();
+            userContext.Insert(user);
+            await userContext.SaveAsync();
         }
     }
 }

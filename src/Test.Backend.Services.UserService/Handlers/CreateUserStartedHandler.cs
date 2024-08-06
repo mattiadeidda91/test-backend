@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using Test.Backend.Abstractions.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.User;
 using Test.Backend.Abstractions.Models.Dto.User.Response;
 using Test.Backend.Abstractions.Models.Entities;
 using Test.Backend.Abstractions.Models.Events.User;
@@ -30,7 +31,7 @@ namespace Test.Backend.Services.UserService.Handlers
 
         public async Task HandleAsync(CreateUserStartedEvent @event)
         {
-            Console.WriteLine($"Handling CreateUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            logger.LogInformation($"Handling CreateUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
             CreateUserResponse response = new()
             {
@@ -45,6 +46,7 @@ namespace Test.Backend.Services.UserService.Handlers
                 await userService.SaveAsync(user);
 
                 response.IsSuccess = true;
+                response.Dto = mapper.Map<UserBaseDto>(user);
             }
 
             await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

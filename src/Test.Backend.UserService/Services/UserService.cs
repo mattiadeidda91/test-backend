@@ -15,28 +15,30 @@ namespace Test.Backend.UserService.Services
 
         public async Task<IEnumerable<User>> GetAsync()
         {
-            var users = await dataContext.GetData<User>()
-                .Include(u => u.Orders)
-                    .ThenInclude(o => o.OrderProducts)
-                      .ThenInclude(p => p.Product)
-                        .ThenInclude(p => p.Category)
-                .OrderBy(p => p.LastName)
-                .ToListAsync();
+            return new List<User>();
+            //var users = await dataContext.GetData<User>()
+            //    .Include(u => u.Orders)
+            //        .ThenInclude(o => o.OrderProducts)
+            //          .ThenInclude(p => p.Product)
+            //            .ThenInclude(p => p.Category)
+            //    .OrderBy(p => p.LastName)
+            //    .ToListAsync();
 
-            return users;
+            //return users;
         }
 
         public async Task<User?> GetByIdAsync(Guid id)
         {
-            var user = await dataContext.GetData<User>()
-                .Include(u => u.Orders)
-                    .ThenInclude(o => o.OrderProducts)
-                      .ThenInclude(p => p.Product)
-                        .ThenInclude(c => c.Category)
-                .Where(u => u.Id == id)
-                .FirstOrDefaultAsync();
+            return new();
+            //var user = await dataContext.GetData<User>()
+            //    .Include(u => u.Orders)
+            //        .ThenInclude(o => o.OrderProducts)
+            //          .ThenInclude(p => p.Product)
+            //            .ThenInclude(c => c.Category)
+            //    .Where(u => u.Id == id)
+            //    .FirstOrDefaultAsync();
 
-            return user;
+            //return user;
         }
 
         public async Task<bool> DeleteAsync(Guid id)

@@ -1,9 +1,13 @@
-﻿using Microsoft.Extensions.Options;
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using Test.Backend.Abstractions.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.User;
+using Test.Backend.Abstractions.Models.Dto.User.Response;
 using Test.Backend.Abstractions.Models.Events.User;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
+using Test.Backend.Services.UserService.Interfaces;
 
 namespace Test.Backend.Services.UserService.Handlers
 {
@@ -11,20 +15,43 @@ namespace Test.Backend.Services.UserService.Handlers
     {
         private readonly IEventBusService msgBus;
         private readonly KafkaOptions kafkaOptions;
+        private readonly IUserService userService;
+        private readonly IMapper mapper;
+        private readonly ILogger<DeleteUserStartedHandler> logger;
 
-        public DeleteUserStartedHandler(IEventBusService msgBus, IOptions<KafkaOptions> kafkaOptions)
+        public DeleteUserStartedHandler(IEventBusService msgBus, IUserService userService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<DeleteUserStartedHandler> logger)
         {
             this.msgBus = msgBus;
             this.kafkaOptions = kafkaOptions.Value;
+            this.userService = userService;
+            this.mapper = mapper;
+            this.logger = logger;
         }
 
-        public Task HandleAsync(DeleteUserStartedEvent @event)
+        public async Task HandleAsync(DeleteUserStartedEvent @event)
         {
-            Console.WriteLine($"Handling DeleteUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            logger.LogInformation($"Handling DeleteUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            msgBus.SendMessage(@event.Activity, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+            DeleteUserResponse response = new()
+            {
+                IsSuccess = false,
+                Dto = null
+            };
 
-            return Task.CompletedTask;
+            var userDb = await userService.GetByIdAsync(@event.Activity!.Id);
+
+            if (userDb != null)
+            {
+                var isDeleted = await userService.DeleteAsync(@event.Activity!.Id);
+
+                if (isDeleted)
+                {
+                    response.IsSuccess = true;
+                    response.Dto = mapper.Map<UserDto>(userDb);
+                }
+            }
+
+            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
         }
     }
 }

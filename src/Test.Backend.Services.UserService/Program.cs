@@ -21,6 +21,7 @@ builder.Services.AddEventBusService(builder.Configuration);
 
 //Configure Services
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserDbContext, UserDbContext>();
 
 //Configure Handlers
 builder.Services.ConfigureEventHandlerMsgBus();

@@ -34,10 +34,10 @@ builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 //builder.Services.AddScoped<IApplicationDbContext>(services => services.GetRequiredService<ApplicationDbContext>());
 
 //Add DbContext
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//{
-//    options.UseSqlServer(builder.Configuration.GetConnectionString(ConnectionStrings.SqlConnection)!);
-//});
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString(ConnectionStrings.SqlConnection)!);
+});
 
 //Configure Controllers
 builder.Services.BuildControllerConfigurations();

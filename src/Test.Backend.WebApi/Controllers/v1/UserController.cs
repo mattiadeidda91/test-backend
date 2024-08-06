@@ -44,20 +44,9 @@ namespace Test.Backend.WebApi.Controllers.v1
 
             _ = await msgBus.SendMessage(message, kafkaOptions!.Consumers!.UserTopic!, cancellationToken, correlationId, headers);
 
-            var response = await msgBus.ConsumeAsync<CreateUserResponse>("response-topic", correlationId);
+            var response = await msgBus.ConsumeAsync<CreateUserResponse>(kafkaOptions!.Producers!.ConsumerTopic!, correlationId);
 
             return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
-
-            //var user = mapper.Map<User>(request);
-
-            //if (user != null)
-            //{
-            //    await userService.SaveAsync(user);
-
-            //    return Ok();
-            //}
-            //else
-            //    return BadRequest();
         }
 
         [HttpGet]
@@ -109,29 +98,9 @@ namespace Test.Backend.WebApi.Controllers.v1
 
             _ = await msgBus.SendMessage(message, kafkaOptions!.Consumers!.UserTopic!, cancellationToken, correlationId, headers);
 
-            var response = await msgBus.ConsumeAsync<UpdateUserResponse>("response-topic", correlationId);
+            var response = await msgBus.ConsumeAsync<UpdateUserResponse>(kafkaOptions!.Producers!.ConsumerTopic!, correlationId);
 
             return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
-
-            //var userDb = userService.GetByIdAsync(request.Id);
-
-            //if (userDb != null)
-            //{
-            //    var user = mapper.Map<User>(request);
-
-            //    if (user != null)
-            //    {
-            //        await userService.UpdateAsync(user);
-
-            //        return Ok();
-            //    }
-            //    else
-            //        return BadRequest();
-            //}
-            //else
-            //{
-            //    return NotFound();
-            //}
         }
 
         [HttpDelete]
@@ -143,7 +112,7 @@ namespace Test.Backend.WebApi.Controllers.v1
 
             _ = await msgBus.SendMessage(message, kafkaOptions!.Consumers!.UserTopic!, cancellationToken, correlationId, headers);
 
-            var response = await msgBus.ConsumeAsync<DeleteUserResponse>("response-topic", correlationId);
+            var response = await msgBus.ConsumeAsync<DeleteUserResponse>(kafkaOptions!.Producers!.ConsumerTopic!, correlationId);
 
             return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response);
 
