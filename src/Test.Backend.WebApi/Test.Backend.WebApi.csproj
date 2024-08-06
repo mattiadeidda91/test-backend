@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Test.Backend.AddressService\Test.Backend.AddressService.csproj" />
+    <ProjectReference Include="..\Test.Backend.Dependencies\Test.Backend.Dependencies.csproj" />
+    <ProjectReference Include="..\Test.Backend.OrderService\Test.Backend.OrderService.csproj" />
+    <ProjectReference Include="..\Test.Backend.ProductService\Test.Backend.ProductService.csproj" />
+    <ProjectReference Include="..\Test.Backend.UserService\Test.Backend.UserService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Logs\" />
+  </ItemGroup>
+
+</Project>
