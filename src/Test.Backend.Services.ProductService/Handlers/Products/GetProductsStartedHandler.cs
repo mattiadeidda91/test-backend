@@ -46,8 +46,6 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
                 response.Dto = mapper.Map<List<ProductDto>>(products);
             }
 
-            //TODO: implement call to OrderService to retrieve Orders for products
-
             await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
         }
     }
