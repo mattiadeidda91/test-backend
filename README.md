@@ -41,7 +41,7 @@ Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
 
 ## Usage
 1. The docker-compose file is present in the root of the project to allow Kafka to work locally.<br>
-   The kafka_ui port is configured on 8084, if there are problems you are asked to change it to a port not in use
+   The kafka_ui port is configured on 8084, if there are problems it is necessary to change it with an unused port.
 2. If it is necessary to install Ubuntu and Docker I leave the following installation and configuration links:<br>
 	a. Ubuntu: https://canonical-ubuntu-wsl.readthedocs-hosted.com/en/latest/guides/install-ubuntu-wsl2/<br>
 	b. Docker: https://docs.docker.com/engine/install/ubuntu/<br>
