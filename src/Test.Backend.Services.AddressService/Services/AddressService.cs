@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Entities;
 using Test.Backend.Services.AddressService.Interfaces;
 
