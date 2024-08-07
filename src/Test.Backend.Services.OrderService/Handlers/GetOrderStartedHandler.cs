@@ -11,19 +11,32 @@ using Test.Backend.Abstractions.Models.Events.Order;
 using System.Text.Json;
 using Test.Backend.Abstractions.Models.Dto.Order.Response;
 using Test.Backend.Abstractions.Models.Dto.Order;
+using Test.Backend.Abstractions.Models.Entities;
+using Test.Backend.Services.OrderService.Utils;
+using Test.Backend.HtpClient.Interfaces;
+
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 
 namespace Test.Backend.Services.OrderService.Handlers
 {
     public class GetOrderStartedHandler : IEventHandler<GetOrderStartedEvent>
     {
+        private readonly IUserHttpClient userHttpClient;
+        private readonly IProductHttpClient productHttpClient;
+        private readonly IAddressHttpClient addressHttpClient;
         private readonly IEventBusService msgBus;
         private readonly KafkaOptions kafkaOptions;
         private readonly IOrderService orderService;
         private readonly IMapper mapper;
         private readonly ILogger<GetOrderStartedHandler> logger;
 
-        public GetOrderStartedHandler(IEventBusService msgBus, IOrderService orderService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<GetOrderStartedHandler> logger)
+        public GetOrderStartedHandler(IEventBusService msgBus, IOrderService orderService, IMapper mapper,
+             IUserHttpClient userHttpClient, IProductHttpClient productHttpClient, IAddressHttpClient addressHttpClient,
+            IOptions<KafkaOptions> kafkaOptions, ILogger<GetOrderStartedHandler> logger)
         {
+            this.productHttpClient = productHttpClient;
+            this.addressHttpClient = addressHttpClient;
+            this.userHttpClient = userHttpClient;
             this.msgBus = msgBus;
             this.kafkaOptions = kafkaOptions.Value;
             this.orderService = orderService;
@@ -45,14 +58,43 @@ namespace Test.Backend.Services.OrderService.Handlers
 
             if (order != null)
             {
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<OrderDto>(order);
-            }
+                var orderDto = await GetOrdersEntities(order, new CancellationToken());
 
-            //TODO: implement call to OrderService to retrieve others info
+                response.IsSuccess = true;
+                response.Dto = orderDto;
+            }
 
             await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
         }
-    }
 
+        private async Task<OrderDto> GetOrdersEntities(Order order, CancellationToken cancellationToken)
+        {
+            var userId = order.UserId;
+            var addressId = order.DeliveryAddressId;
+            var productIds = order.OrderProducts.Select(op => op.ProductId).Distinct().ToList();
+
+            var userDto = await UtilityClient.FetchEntityAsync(userId, id => userHttpClient.GetUserByIdAsync(id, cancellationToken), cancellationToken);
+            var addressDto = await UtilityClient.FetchEntityAsync(addressId, id => addressHttpClient.GetAddressByIdAsync(id, cancellationToken), cancellationToken);
+            var productsDto = await UtilityClient.FetchEntitiesAsync(productIds, id => productHttpClient.GetProductByIdAsync(id, cancellationToken), cancellationToken);
+
+            var orderDto = mapper.Map<OrderDto>(order);
+
+            if (userDto != null)
+            {
+                orderDto.User = userDto;
+            }
+            if (addressDto != null)
+            {
+                orderDto.Address = addressDto;
+            }
+
+            orderDto.Products = order.OrderProducts
+                .Select(op => productsDto.TryGetValue(op.ProductId, out var productDto) ? productDto : null)
+                .Where(dto => dto != null)
+                .ToList();
+            return orderDto;
+        }
+    }
 }
+
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.

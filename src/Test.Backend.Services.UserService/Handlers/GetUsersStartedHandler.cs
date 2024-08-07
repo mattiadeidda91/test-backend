@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using System.Threading;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.User;
 using Test.Backend.Abstractions.Models.Dto.User.Response;
 using Test.Backend.Abstractions.Models.Events.User;
+using Test.Backend.HtpClient.Interfaces;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.UserService.Interfaces;
@@ -12,7 +14,7 @@ using Test.Backend.Services.UserService.Interfaces;
 namespace Test.Backend.Services.UserService.Handlers
 {
     public class GetUsersStartedHandler : IEventHandler<GetUsersStartedEvent>
-    {
+    {    
         private readonly IEventBusService msgBus;
         private readonly KafkaOptions kafkaOptions;
         private readonly IUserService userService;

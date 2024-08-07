@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Backend.Services.Addre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Backend.Kafka", "src\Test.Backend.Kafka\Test.Backend.Kafka.csproj", "{4C1FC648-13FB-49DE-804B-F43B6CE23324}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Backend.HtpClient", "src\Test.Backend.HtpClient\Test.Backend.HtpClient.csproj", "{6601C169-E8E9-455C-B7A8-BB64F35011E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{4C1FC648-13FB-49DE-804B-F43B6CE23324}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C1FC648-13FB-49DE-804B-F43B6CE23324}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C1FC648-13FB-49DE-804B-F43B6CE23324}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6601C169-E8E9-455C-B7A8-BB64F35011E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6601C169-E8E9-455C-B7A8-BB64F35011E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6601C169-E8E9-455C-B7A8-BB64F35011E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6601C169-E8E9-455C-B7A8-BB64F35011E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

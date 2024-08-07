@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Refit;
 using Serilog;
 using System.Reflection;
 using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Extensions;
 using Test.Backend.Dependencies.Utils;
+using Test.Backend.HtpClient.Extensions;
+using Test.Backend.HtpClient.Interfaces;
 using Test.Backend.Kafka.Configurations;
 using Test.Backend.Services.UserService.Configurations;
 using Test.Backend.Services.UserService.DatabaseContext;
