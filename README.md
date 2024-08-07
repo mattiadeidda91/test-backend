@@ -5,9 +5,11 @@ test-backend
 A minimal order management system with:
 - Microservices
 - REST API
-- EntityFramework for DB access
+- EntityFramework for SQL Server database
 - Serilog for logging
 - Kafka
+- Refit
+- Polly
 - XUnit Test
 
 ## Description
@@ -46,7 +48,7 @@ Test.Backend.Services.OrderService -> ShoppingCart.Dependencies<br>
 	c. Docker PostInstall: https://docs.docker.com/engine/install/linux-postinstall/<br>
 3. Once Docker is configured you need to start the services with the command:<br>
 	 **sudo service docker start**
-4. Next we need to run our docker-docker-compose.yml file with the command:<br>
+4. Next it needs to run the docker-docker-compose.yml file with the command:<br>
 	**docker-compose -f '{pathFile}/docker-compose.yml' up --build -d**<br>
    Where {pathFile} should be replaced with the physical path of the file.<br>
    Example path file: **docker-compose -f '/mnt/c/Users/mdeidda/Documents/Visual Studio 2022/Projects/test-backend/docker-compose.yml' up --build -d**
