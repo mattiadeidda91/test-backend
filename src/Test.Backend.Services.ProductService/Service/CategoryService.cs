@@ -32,11 +32,24 @@ namespace Test.Backend.Services.ProductService.Service
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var user = await GetByIdAsync(id);
+            var category = await GetByIdAsync(id);
 
-            if (user != null)
+            if (category != null)
             {
-                dataContext.Delete(user);
+                dataContext.Delete(category);
+                await dataContext.SaveAsync();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> DeleteAsync(Category category)
+        {
+            if (category != null)
+            {
+                dataContext.Delete(category);
                 await dataContext.SaveAsync();
 
                 return true;

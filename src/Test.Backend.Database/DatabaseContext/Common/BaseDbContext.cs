@@ -30,6 +30,9 @@ namespace Test.Backend.Database.DatabaseContext.Common
         public void Update<T>(T entity) where T : class
             => Set<T>().Update(entity);
 
+        public void Attach<T>(T entity) where T : class
+            => Set<T>().Attach(entity);
+
         public void Delete<T>(T entity) where T : class
             => Set<T>().Remove(entity);
 

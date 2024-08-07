@@ -62,6 +62,19 @@ namespace Test.Backend.Services.UserService.Service
             return false;
         }
 
+        public async Task<bool> DeleteAsync(User user)
+        {
+            if (user != null)
+            {
+                userContext.Delete(user);
+                await userContext.SaveAsync();
+
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task UpdateAsync(User user)
         {
             userContext.Update(user);

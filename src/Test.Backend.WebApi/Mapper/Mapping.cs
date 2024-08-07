@@ -24,13 +24,13 @@ namespace Test.Backend.WebApi.Mapper
             _ = CreateMap<UserDto, Product>().ReverseMap();
 
             /* ADDRESS */
-            _ = CreateMap<Abstractions.Models.Dto.Address.Request.AddressRequest, Address>().ReverseMap();
+            _ = CreateMap<AddressRequest, Address>().ReverseMap();
 
             _ = CreateMap<Address, AddressBaseDto>().ReverseMap();
             _ = CreateMap<Address, AddressDto>().ReverseMap();
 
             /* CATEGORY */
-            _ = CreateMap<Abstractions.Models.Dto.Category.Request.CategoryRequest, Category>().ReverseMap();
+            _ = CreateMap<CategoryRequest, Category>().ReverseMap();
 
             _ = CreateMap<CategoryBaseDto, Category>().ReverseMap();
             _ = CreateMap<CategoryDto, Category>().ReverseMap();
@@ -44,30 +44,30 @@ namespace Test.Backend.WebApi.Mapper
             _ = CreateMap<ProductWithoutOrderDto, Product>().ReverseMap();
 
             /* ORDERS */
-            _ = CreateMap<OrderRequest, Order>()
-                .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src =>
-                    src.ProductIds != null
-                    ? src.ProductIds.Select(id => new OrderProduct { Id = Guid.NewGuid(), ProductId = id }).ToList()
-                    : new List<OrderProduct>()));
+            _ = CreateMap<OrderRequest, Order>().ReverseMap();
+                //.ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src =>
+                //    src.ProductIds != null
+                //    ? src.ProductIds.Select(id => new OrderProduct { Id = Guid.NewGuid(), ProductId = id }).ToList()
+                //    : new List<OrderProduct>()));
 
             _ = CreateMap<OrderBaseDto, Order>().ReverseMap();
             
             _ = CreateMap<Order, OrderDto>()
-                .ForMember(dest => dest.Address, opt => opt.MapFrom( src => src.DeliveryAddress))
-                .ForMember(dest => dest.Products, opt => opt.MapFrom(src =>
-                    src.OrderProducts.Select(p => p.Product).ToList()))
+                //.ForMember(dest => dest.Address, opt => opt.MapFrom( src => src.DeliveryAddress))
+                //.ForMember(dest => dest.Products, opt => opt.MapFrom(src =>
+                //    src.OrderProducts.Select(p => p.Product).ToList()))
                 .ReverseMap();
             
             _ = CreateMap<Order, OrderWithoutAddressDto>()
-                .ForMember(dest => dest.Products, opt => opt.MapFrom(src =>
-                    src.OrderProducts.Select(p => p.Product).ToList()))
+                //.ForMember(dest => dest.Products, opt => opt.MapFrom(src =>
+                //    src.OrderProducts.Select(p => p.Product).ToList()))
                 .ReverseMap();
             
             _ = CreateMap<Order, OrderWithoutUserDto>()
                 .ReverseMap();
 
             _ = CreateMap<Order, OrderWithoutProductDto>()
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.DeliveryAddress))
+                //.ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.DeliveryAddress))
                 .ReverseMap();
         }
     }

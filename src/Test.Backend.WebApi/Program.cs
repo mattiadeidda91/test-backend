@@ -1,14 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Reflection;
-using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Extensions;
-using Test.Backend.Abstractions.Interfaces;
-using Test.Backend.Database.DatabaseContext;
 using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Configurations;
-using Test.Backend.OrderService.Interfaces;
-using Test.Backend.OrderService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,17 +11,6 @@ var apiVersions = ApiVersionHelper.GetApiVersions(Assembly.GetExecutingAssembly(
 
 //Configure Kafka Service and Options
 builder.Services.AddEventBusService(builder.Configuration);
-
-//Add Services
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
-//builder.Services.AddScoped<IApplicationDbContext>(services => services.GetRequiredService<ApplicationDbContext>());
-
-//Add DbContext
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString(ConnectionStrings.SqlConnection)!);
-});
 
 //Configure Controllers
 builder.Services.BuildControllerConfigurations();
@@ -61,13 +44,6 @@ if (app.Environment.IsDevelopment())
         }
     });
 }
-
-////Apply Db migrations
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//    dbContext.Database.Migrate();
-//}
 
 //Serilog log all requests
 app.UseSerilogRequestLogging(options =>

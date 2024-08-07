@@ -47,11 +47,24 @@ namespace Test.Backend.Services.ProductService.Service
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var user = await GetByIdAsync(id);
+            var product = await GetByIdAsync(id);
 
-            if (user != null)
+            if (product != null)
             {
-                dataContext.Delete(user);
+                dataContext.Delete(product);
+                await dataContext.SaveAsync();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> DeleteAsync(Product product)
+        {
+            if (product != null)
+            {
+                dataContext.Delete(product);
                 await dataContext.SaveAsync();
 
                 return true;

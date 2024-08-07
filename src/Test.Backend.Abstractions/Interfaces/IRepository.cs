@@ -1,4 +1,6 @@
-﻿namespace Test.Backend.Abstractions.Interfaces
+﻿using System.Security.Cryptography;
+
+namespace Test.Backend.Abstractions.Interfaces
 {
     public interface IRepository
     {
@@ -7,6 +9,8 @@
         ValueTask<T?> GetAsync<T>(params object[] keyValues) where T : class;
 
         void Insert<T>(T entity) where T : class;
+
+        void Attach<T>(T entity) where T : class;
 
         void Update<T>(T entity) where T : class;
 

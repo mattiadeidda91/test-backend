@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Test.Backend.Dependencies\Test.Backend.Dependencies.csproj" />
-    <ProjectReference Include="..\Test.Backend.OrderService\Test.Backend.OrderService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

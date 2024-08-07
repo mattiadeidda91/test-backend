@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Backend.Dependencies",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Backend.Database", "src\Test.Backend.Database\Test.Backend.Database.csproj", "{43BFF2A0-C5D0-4691-9C61-3C13CC961F83}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Backend.OrderService", "src\Test.Backend.OrderService\Test.Backend.OrderService.csproj", "{6DDEB2CD-5784-4B73-91EB-B6D333364401}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Backend.Services.UserService", "src\Test.Backend.Services.UserService\Test.Backend.Services.UserService.csproj", "{8E89A39B-4291-4DEC-BB45-731472983947}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Backend.Services.OrderService", "src\Test.Backend.Services.OrderService\Test.Backend.Services.OrderService.csproj", "{50F292F4-4F6D-4A3B-80B9-76F27BF8082C}"
@@ -45,10 +43,6 @@ Global
 		{43BFF2A0-C5D0-4691-9C61-3C13CC961F83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43BFF2A0-C5D0-4691-9C61-3C13CC961F83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43BFF2A0-C5D0-4691-9C61-3C13CC961F83}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6DDEB2CD-5784-4B73-91EB-B6D333364401}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6DDEB2CD-5784-4B73-91EB-B6D333364401}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6DDEB2CD-5784-4B73-91EB-B6D333364401}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6DDEB2CD-5784-4B73-91EB-B6D333364401}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8E89A39B-4291-4DEC-BB45-731472983947}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E89A39B-4291-4DEC-BB45-731472983947}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E89A39B-4291-4DEC-BB45-731472983947}.Release|Any CPU.ActiveCfg = Release|Any CPU

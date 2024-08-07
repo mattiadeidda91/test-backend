@@ -53,11 +53,24 @@ public class AddressService : IAddressService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var user = await this.GetByIdAsync(id);
+        var address = await this.GetByIdAsync(id);
 
-        if (user != null)
+        if (address != null)
         {
-            dataContext.Delete(user);
+            dataContext.Delete(address);
+            await dataContext.SaveAsync();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> DeleteAsync(Address address)
+    {
+        if (address != null)
+        {
+            dataContext.Delete(address);
             await dataContext.SaveAsync();
 
             return true;
