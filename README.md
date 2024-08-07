@@ -24,20 +24,20 @@ A minimal order management system with:
 ## Dependencies Projects
 Test.Backend.Abstractions<br>
 
-Test.Backend.Database -> ShoppingCart.Abstractions<br>
-Test.Backend.HttpClient -> ShoppingCart.Abstractions<br>
-Test.Backend.Kafka -> ShoppingCart.Abstractions<br>
+Test.Backend.Database -> Test.Backend.Abstractions<br>
+Test.Backend.HttpClient -> Test.Backend.Abstractions<br>
+Test.Backend.Kafka -> Test.Backend.Abstractions<br>
 
-Test.Backend.Dependencies -> ShoppingCart.Database<br>
-Test.Backend.Dependencies -> ShoppingCart.HttpClient<br>
-Test.Backend.Dependencies -> ShoppingCart.Kafka<br>
+Test.Backend.Dependencies -> Test.Backend.Database<br>
+Test.Backend.Dependencies -> Test.Backend.HttpClient<br>
+Test.Backend.Dependencies -> Test.Backend.Kafka<br>
 
-Test.Backend.WebApi -> ShoppingCart.Dependencies<br>
+Test.Backend.WebApi -> Test.Backend.Dependencies<br>
 
-Test.Backend.Services.AddressService -> ShoppingCart.Dependencies<br>
-Test.Backend.Services.ProductService -> ShoppingCart.Dependencies<br>
-Test.Backend.Services.UserService -> ShoppingCart.Dependencies<br>
-Test.Backend.Services.OrderService -> ShoppingCart.Dependencies<br>
+Test.Backend.Services.AddressService -> Test.Backend.Dependencies<br>
+Test.Backend.Services.ProductService -> Test.Backend.Dependencies<br>
+Test.Backend.Services.UserService -> Test.Backend.Dependencies<br>
+Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
 
 ## Usage
 1. The docker-compose file is present in the root of the project to allow Kafka to work locally.<br>
