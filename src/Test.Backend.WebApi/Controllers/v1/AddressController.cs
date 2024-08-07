@@ -61,7 +61,7 @@ namespace Test.Backend.WebApi.Controllers.v1
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateUser([Required] AddressRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateAddress([Required] AddressRequest request, CancellationToken cancellationToken)
         {
             var response = await msgBus.HandleMsgBusMessages<UpdateAddressStartedEvent, AddressRequest, UpdateAddressResponse>(
                request,
@@ -73,7 +73,7 @@ namespace Test.Backend.WebApi.Controllers.v1
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUser([Required] Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteAddress([Required] Guid id, CancellationToken cancellationToken)
         {
             var response = await msgBus.HandleMsgBusMessages<DeleteAddressStartedEvent, AddressRequest, DeleteAddressResponse>(
                new() { Id = id },
