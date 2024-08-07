@@ -50,8 +50,8 @@ Test.Backend.Services.OrderService -> ShoppingCart.Dependencies<br>
 	**docker-compose -f '{pathFile}/docker-compose.yml' up --build -d**<br>
    Where {pathFile} should be replaced with the physical path of the file.<br>
    Example path file: **docker-compose -f '/mnt/c/Users/mdeidda/Documents/Visual Studio 2022/Projects/test-backend/docker-compose.yml' up --build -d**
-5. Open the solution test-backend.sln 
-6. In the appsettings.json and appsettings.Development.json of each microservice add your own connectionString to connect to SqlServer.
+5. Open the solution **test-backend.sln**
+6. In the **appsettings.json** and **appsettings.Development.json** of each microservice add your own connectionString to connect to SqlServer.
 7. Startup projects should already be configured, verify in Solution Properties that WebApi projects and all microservices are set as Startup projects.
 8. The migration scripts should already be set up in the project and automatically run at startup.<br>
    If this does not happen, you need to launch the **Add-Migration InitialCreate** and then **Update-Database** commands on the Package Manager Console.<br>
