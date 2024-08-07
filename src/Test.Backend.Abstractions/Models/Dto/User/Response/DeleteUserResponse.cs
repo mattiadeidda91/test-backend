@@ -2,7 +2,7 @@
 
 namespace Test.Backend.Abstractions.Models.Dto.User.Response
 {
-    public class DeleteUserResponse : ResponseBase<UserDto>
+    public class DeleteUserResponse : ResponseBase<UserBaseDto>
     {
     }
 }

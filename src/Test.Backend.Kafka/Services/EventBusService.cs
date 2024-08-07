@@ -164,6 +164,24 @@ namespace Test.Backend.Kafka.Services
             return (msgBusEvent, msgBusHeaders);
         }
 
+        public async Task<TResponse?> HandleMsgBusMessages<TEvent, TActivity, TResponse>(
+            TActivity request,
+            string userTopic,
+            string consumerTopic,
+            CancellationToken cancellationToken)
+            where TEvent : BaseEvent<TActivity>, new()
+            where TActivity : class
+            where TResponse : class
+        {
+            var correlationId = Guid.NewGuid().ToString();
+
+            (var message, var headers) = this.GenerateMsgBusEvent<TEvent, TActivity>(request, correlationId);
+
+            _ = await this.SendMessage(message, userTopic, cancellationToken, correlationId, headers);
+
+            return await this.ConsumeAsync<TResponse>(consumerTopic, correlationId);
+        }
+
         public ActionResult<MessageBusResponse<TDto>> ManageBusResponse<TEvent, TDto>(ControllerBase controller, DeliveryResult<string, TEvent> deliveryResult, TDto? activityRequest)
                 where TDto : BaseDto
                 where TEvent : BaseEvent<TDto>

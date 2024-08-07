@@ -4,17 +4,11 @@ using System.Reflection;
 using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Extensions;
 using Test.Backend.Abstractions.Interfaces;
-using Test.Backend.AddressService.Interfaces;
-using Test.Backend.AddressService.Services;
 using Test.Backend.Database.DatabaseContext;
 using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Configurations;
 using Test.Backend.OrderService.Interfaces;
 using Test.Backend.OrderService.Services;
-using Test.Backend.ProductService.Interfaces;
-using Test.Backend.ProductService.Services;
-using Test.Backend.UserService.Interfaces;
-using Test.Backend.UserService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +20,6 @@ builder.Services.AddEventBusService(builder.Configuration);
 
 //Add Services
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAddressService, AddressService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 //builder.Services.AddScoped<IApplicationDbContext>(services => services.GetRequiredService<ApplicationDbContext>());
 

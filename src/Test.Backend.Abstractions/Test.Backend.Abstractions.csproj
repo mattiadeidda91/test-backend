@@ -18,10 +18,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.7.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\Dto\Category\Response\" />
-    <Folder Include="Models\Dto\Order\Response\" />
-    <Folder Include="Models\Dto\Product\Response\" />
-  </ItemGroup>
-
 </Project>

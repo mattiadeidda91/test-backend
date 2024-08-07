@@ -1,10 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
-using Test.Backend.Abstractions.Models.Dto.Address;
 using Test.Backend.Abstractions.Models.Dto.Address.Request;
-using Test.Backend.Abstractions.Models.Entities;
-using Test.Backend.AddressService.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.Address.Response;
+using Test.Backend.Abstractions.Models.Events.Address;
+using Test.Backend.Kafka.Interfaces;
+using Test.Backend.Kafka.Options;
 
 namespace Test.Backend.WebApi.Controllers.v1
 {
@@ -13,81 +14,74 @@ namespace Test.Backend.WebApi.Controllers.v1
     public class AddressController : ControllerBase
     {
         private readonly ILogger<AddressController> logger;
-        private readonly IMapper mapper;
-        private readonly IAddressService addressService;
+        private readonly KafkaOptions kafkaOptions;
+        private readonly IEventBusService msgBus;
 
-        public AddressController(IAddressService addressService, ILogger<AddressController> logger, IMapper mapper)
+        public AddressController(IEventBusService msgBus, IOptions<KafkaOptions> kafkaOptions, ILogger<AddressController> logger)
         {
-            this.addressService = addressService;
+            this.msgBus = msgBus;
+            this.kafkaOptions = kafkaOptions.Value;
             this.logger = logger;
-            this.mapper = mapper;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAddress([Required] AddressRequest request)
+        public async Task<IActionResult> CreateAddress([Required] AddressRequest request, CancellationToken cancellationToken)
         {
-            var address = mapper.Map<Address>(request);
+            var response = await msgBus.HandleMsgBusMessages<CreateAddressStartedEvent, AddressRequest, CreateAddressResponse>(
+               request,
+               kafkaOptions!.Consumers!.AddressTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            if (address != null)
-            {
-                await addressService.SaveAsync(address);
-
-                return Ok();
-            }
-            else
-                return BadRequest();
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, response?.Dto);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAddresses()
+        public async Task<IActionResult> GetAddresses(CancellationToken cancellationToken)
         {
-            var addresses = await addressService.GetAsync();
+            var response = await msgBus.HandleMsgBusMessages<GetAddressesStartedEvent, object, GetAddressesResponse>(
+               null,
+               kafkaOptions!.Consumers!.AddressTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            var addressesDto = mapper.Map<List<AddressDto>>(addresses);
-
-            return StatusCode(addressesDto != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, addressesDto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAddressById([Required] Guid id)
+        public async Task<IActionResult> GetAddressById([Required] Guid id, CancellationToken cancellationToken)
         {
-            var categories = await addressService.GetByIdAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<GetAddressStartedEvent, AddressRequest, GetAddressResponse>(
+               new() { Id = id },
+               kafkaOptions!.Consumers!.AddressTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            var categoryDto = mapper.Map<AddressDto>(categories);
-
-            return StatusCode(categoryDto != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, categoryDto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateUser([Required] AddressRequest request)
+        public async Task<IActionResult> UpdateUser([Required] AddressRequest request, CancellationToken cancellationToken)
         {
-            var addressDb = await addressService.GetByIdAsync(request.Id);
+            var response = await msgBus.HandleMsgBusMessages<UpdateAddressStartedEvent, AddressRequest, UpdateAddressResponse>(
+               request,
+               kafkaOptions!.Consumers!.AddressTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            if (addressDb != null)
-            {
-                var address = mapper.Map<Address>(request);
-
-                if (address != null)
-                {
-                    await addressService.UpdateAsync(address);
-
-                    return Ok();
-                }
-                else
-                    return BadRequest();
-            }
-            else
-            {
-                return NotFound();
-            }
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUser([Required] Guid id)
+        public async Task<IActionResult> DeleteUser([Required] Guid id, CancellationToken cancellationToken)
         {
-            var isDeleted = await addressService.DeleteAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<DeleteAddressStartedEvent, AddressRequest, DeleteAddressResponse>(
+               new() { Id = id },
+               kafkaOptions!.Consumers!.AddressTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            return StatusCode(isDeleted ? StatusCodes.Status200OK : StatusCodes.Status404NotFound);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response);
         }
     }
 }

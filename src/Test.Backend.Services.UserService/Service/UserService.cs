@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Entities;
 using Test.Backend.Services.UserService.Interfaces;
 
@@ -63,9 +62,9 @@ namespace Test.Backend.Services.UserService.Service
             return false;
         }
 
-        public async Task UpdateAsync(User address)
+        public async Task UpdateAsync(User user)
         {
-            userContext.Update(address);
+            userContext.Update(user);
             await userContext.SaveAsync();
         }
 

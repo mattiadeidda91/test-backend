@@ -9,7 +9,6 @@ namespace Test.Backend.Services.UserService.Mapper
     {
         public Mapping() 
         {
-            /* USERS */
             _ = CreateMap<UserRequest, User>().ReverseMap();
 
             _ = CreateMap<UserBaseDto, User>().ReverseMap();

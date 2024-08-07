@@ -1,10 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
-using Test.Backend.Abstractions.Models.Dto.Category;
 using Test.Backend.Abstractions.Models.Dto.Category.Request;
-using Test.Backend.Abstractions.Models.Entities;
-using Test.Backend.ProductService.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.Category.Response;
+using Test.Backend.Abstractions.Models.Events.Category;
+using Test.Backend.Kafka.Interfaces;
+using Test.Backend.Kafka.Options;
 
 namespace Test.Backend.WebApi.Controllers.v1
 {
@@ -13,81 +14,74 @@ namespace Test.Backend.WebApi.Controllers.v1
     public class CategoryController : ControllerBase
     {
         private readonly ILogger<CategoryController> logger;
-        private readonly IMapper mapper;
-        private readonly ICategoryService categoryService;
+        private readonly KafkaOptions kafkaOptions;
+        private readonly IEventBusService msgBus;
 
-        public CategoryController(ICategoryService addressService, ILogger<CategoryController> logger, IMapper mapper)
+        public CategoryController(IEventBusService msgBus, IOptions<KafkaOptions> kafkaOptions, ILogger<CategoryController> logger)
         {
-            this.categoryService = addressService;
+            this.msgBus = msgBus;
+            this.kafkaOptions = kafkaOptions.Value;
             this.logger = logger;
-            this.mapper = mapper;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAddress([Required] CategoryRequest request)
+        public async Task<IActionResult> CreateAddress([Required] CategoryRequest request, CancellationToken cancellationToken)
         {
-            var category = mapper.Map<Category>(request);
+            var response = await msgBus.HandleMsgBusMessages<CreateCategoryStartedEvent, CategoryRequest, CreateCategoryResponse>(
+               request,
+               kafkaOptions!.Consumers!.ProductTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            if (category != null)
-            {
-                await categoryService.SaveAsync(category);
-
-                return Ok();
-            }
-            else
-                return BadRequest();
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, response?.Dto);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCategories()
+        public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
         {
-            var categories = await categoryService.GetAsync();
+            var response = await msgBus.HandleMsgBusMessages<GetCategoriesStartedEvent, object, GetCategoriesResponse>(
+                null,
+                kafkaOptions!.Consumers!.ProductTopic!,
+                kafkaOptions!.Producers!.ConsumerTopic!,
+                cancellationToken);
 
-            var categoriesDto = mapper.Map<List<CategoryDto>>(categories);
-
-            return StatusCode(categoriesDto != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, categoriesDto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);       
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategoryById([Required] Guid id)
+        public async Task<IActionResult> GetCategoryById([Required] Guid id, CancellationToken cancellationToken)
         {
-            var categories = await categoryService.GetByIdAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<GetCategoryStartedEvent, CategoryRequest, GetCategoryResponse>(
+                new() { Id = id },
+                kafkaOptions!.Consumers!.ProductTopic!,
+                kafkaOptions!.Producers!.ConsumerTopic!,
+                cancellationToken);
 
-            var categoryDto = mapper.Map<CategoryDto>(categories);
-
-            return StatusCode(categoryDto != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, categoryDto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateUser([Required] CategoryRequest request)
+        public async Task<IActionResult> UpdateUser([Required] CategoryRequest request, CancellationToken cancellationToken)
         {
-            var categoryDb = await categoryService.GetByIdAsync(request.Id);
+            var response = await msgBus.HandleMsgBusMessages<UpdateCategoryStartedEvent, CategoryRequest, UpdateCategoryResponse>(
+                request,
+                kafkaOptions!.Consumers!.ProductTopic!,
+                kafkaOptions!.Producers!.ConsumerTopic!,
+                cancellationToken);
 
-            if (categoryDb != null)
-            {
-                var category = mapper.Map<Category>(request);
-
-                if (category != null)
-                {
-                    await categoryService.UpdateAsync(category);
-
-                    return Ok();
-                }
-                else
-                    return BadRequest();
-            }
-            else
-            {
-                return NotFound();
-            }
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUser([Required] Guid id)
+        public async Task<IActionResult> DeleteUser([Required] Guid id, CancellationToken cancellationToken)
         {
-            var isDeleted = await categoryService.DeleteAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<DeleteCategoryStartedEvent, CategoryRequest, DeleteCategoryResponse>(
+                new() { Id = id },
+                kafkaOptions!.Consumers!.ProductTopic!,
+                kafkaOptions!.Producers!.ConsumerTopic!,
+                cancellationToken);
 
-            return StatusCode(isDeleted ? StatusCodes.Status200OK : StatusCodes.Status404NotFound);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response);
         }
     }
 }

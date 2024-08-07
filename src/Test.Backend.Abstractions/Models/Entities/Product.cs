@@ -8,6 +8,6 @@ namespace Test.Backend.Abstractions.Models.Entities
         public double Price { get; set; }
         public Guid CategoryId { get; set; }
         public virtual Category? Category { get; set; }
-        public virtual ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
+        //public virtual ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
     }
 }

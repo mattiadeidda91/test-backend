@@ -1,10 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
-using Test.Backend.Abstractions.Models.Dto.Product;
 using Test.Backend.Abstractions.Models.Dto.Product.Request;
-using Test.Backend.Abstractions.Models.Entities;
-using Test.Backend.ProductService.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.Product.Response;
+using Test.Backend.Abstractions.Models.Events.Product;
+using Test.Backend.Kafka.Interfaces;
+using Test.Backend.Kafka.Options;
 
 namespace Test.Backend.WebApi.Controllers.v1
 {
@@ -13,81 +14,74 @@ namespace Test.Backend.WebApi.Controllers.v1
     public class ProductController : ControllerBase
     {
         private readonly ILogger<ProductController> logger;
-        private readonly IMapper mapper;
-        private readonly IProductService productService;
+        private readonly KafkaOptions kafkaOptions;
+        private readonly IEventBusService msgBus;
 
-        public ProductController(IProductService productService, ILogger<ProductController> logger, IMapper mapper)
+        public ProductController(IEventBusService msgBus, IOptions<KafkaOptions> kafkaOptions, ILogger<ProductController> logger)
         {
-            this.productService = productService;
+            this.msgBus = msgBus;
+            this.kafkaOptions = kafkaOptions.Value;
             this.logger = logger;
-            this.mapper = mapper;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateProduct([Required] ProductRequest request)
+        public async Task<IActionResult> CreateProduct([Required] ProductRequest request, CancellationToken cancellationToken)
         {
-            var product = mapper.Map<Product>(request);
+            var response = await msgBus.HandleMsgBusMessages<CreateProductStartedEvent, ProductRequest, CreateProductResponse>(
+               request,
+               kafkaOptions!.Consumers!.ProductTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            if (product != null)
-            {
-                await productService.SaveAsync(product);
-
-                return Ok();
-            }
-            else
-                return BadRequest();
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, response?.Dto);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProducts()
+        public async Task<IActionResult> GetProducts(CancellationToken cancellationToken)
         {
-            var products = await productService.GetAsync();
+            var response = await msgBus.HandleMsgBusMessages<GetProductsStartedEvent, object, GetProductsResponse>(
+               null,
+               kafkaOptions!.Consumers!.ProductTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            var productsDtp = mapper.Map<List<ProductDto>>(products);
-
-            return StatusCode(productsDtp != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, productsDtp);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetProductById([Required] Guid id)
+        public async Task<IActionResult> GetProductById([Required] Guid id, CancellationToken cancellationToken)
         {
-            var products = await productService.GetByIdAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<GetProductStartedEvent, ProductRequest, GetProductResponse>(
+               new() { Id = id },
+               kafkaOptions!.Consumers!.ProductTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            var productDtp = mapper.Map<ProductDto>(products);
-
-            return StatusCode(productDtp != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, productDtp);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateUser([Required] ProductRequest request)
+        public async Task<IActionResult> UpdateUser([Required] ProductRequest request, CancellationToken cancellationToken)
         {
-            var productDb = await productService.GetByIdAsync(request.Id);
+            var response = await msgBus.HandleMsgBusMessages<UpdateProductStartedEvent, ProductRequest, UpdateProductResponse>(
+               request,
+               kafkaOptions!.Consumers!.ProductTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            if (productDb != null)
-            {
-                var product = mapper.Map<Product>(request);
-
-                if (product != null)
-                {
-                    await productService.UpdateAsync(product);
-
-                    return Ok();
-                }
-                else
-                    return BadRequest();
-            }
-            else
-            {
-                return NotFound();
-            }
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUser([Required] Guid id)
+        public async Task<IActionResult> DeleteUser([Required] Guid id, CancellationToken cancellationToken)
         {
-            var isDeleted = await productService.DeleteAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<DeleteProductStartedEvent, ProductRequest, DeleteProductResponse>(
+               new() { Id = id},
+               kafkaOptions!.Consumers!.ProductTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            return StatusCode(isDeleted ? StatusCodes.Status200OK : StatusCodes.Status404NotFound);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response);
         }
     }
 }

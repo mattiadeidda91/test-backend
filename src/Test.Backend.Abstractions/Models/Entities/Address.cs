@@ -8,6 +8,6 @@ namespace Test.Backend.Abstractions.Models.Entities
         public string? City { get; set; }
         public string? PostalCode { get; set; }
         public string? Country { get; set; }
-        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+        //public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

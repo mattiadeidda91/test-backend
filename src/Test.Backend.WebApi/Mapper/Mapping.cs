@@ -18,19 +18,19 @@ namespace Test.Backend.WebApi.Mapper
         public Mapping() 
         {
             /* USERS */
-            _ = CreateMap<UserRequest, User>().ReverseMap();
+            _ = CreateMap<UserRequest, Product>().ReverseMap();
 
-            _ = CreateMap<UserBaseDto, User>().ReverseMap();
-            _ = CreateMap<UserDto, User>().ReverseMap();
+            _ = CreateMap<UserBaseDto, Product>().ReverseMap();
+            _ = CreateMap<UserDto, Product>().ReverseMap();
 
             /* ADDRESS */
-            _ = CreateMap<AddressRequest, Address>().ReverseMap();
+            _ = CreateMap<Abstractions.Models.Dto.Address.Request.AddressRequest, Address>().ReverseMap();
 
             _ = CreateMap<Address, AddressBaseDto>().ReverseMap();
             _ = CreateMap<Address, AddressDto>().ReverseMap();
 
             /* CATEGORY */
-            _ = CreateMap<CategoryRequest, Category>().ReverseMap();
+            _ = CreateMap<Abstractions.Models.Dto.Category.Request.CategoryRequest, Category>().ReverseMap();
 
             _ = CreateMap<CategoryBaseDto, Category>().ReverseMap();
             _ = CreateMap<CategoryDto, Category>().ReverseMap();

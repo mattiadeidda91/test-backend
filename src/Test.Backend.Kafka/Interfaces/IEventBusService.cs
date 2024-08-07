@@ -12,9 +12,17 @@ namespace Test.Backend.Kafka.Interfaces
         Task Subscribe<T>(Action<ConsumeResult<string, T>> action, string topic, string? groupId =null);
         Task Subscribe(Action<ConsumeResult<string, string>> action, string topic, string? groupId = null);
         Task<T?> ConsumeAsync<T>(string topic, string key, string? groupId = null) where T : class;
-        (TEvent, Headers) GenerateMsgBusEvent<TEvent, TActivity>(TActivity activity, string corralationId) where TEvent : BaseEvent<TActivity>, new() where TActivity : class;
+        (TEvent, Headers) GenerateMsgBusEvent<TEvent, TActivity>(TActivity activity, string correlationId) where TEvent : BaseEvent<TActivity>, new() where TActivity : class;
         public ActionResult<MessageBusResponse<TDto>> ManageBusResponse<TEvent, TDto>(ControllerBase controller, DeliveryResult<string, TEvent> deliveryResult, TDto? activityRequest)
                 where TDto : BaseDto
                 where TEvent : BaseEvent<TDto>;
+        Task<TResponse?> HandleMsgBusMessages<TEvent, TActivity, TResponse>(
+            TActivity request,
+            string userTopic,
+            string consumerTopic,
+            CancellationToken cancellationToken)
+            where TEvent : BaseEvent<TActivity>, new()
+            where TActivity : class
+            where TResponse : class;
     }
 }

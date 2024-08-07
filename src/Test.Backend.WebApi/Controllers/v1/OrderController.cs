@@ -1,10 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
-using Test.Backend.Abstractions.Models.Dto.Order;
 using Test.Backend.Abstractions.Models.Dto.Order.Request;
-using Test.Backend.Abstractions.Models.Entities;
-using Test.Backend.OrderService.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.Order.Response;
+using Test.Backend.Abstractions.Models.Events.Order;
+using Test.Backend.Kafka.Interfaces;
+using Test.Backend.Kafka.Options;
 
 namespace Test.Backend.WebApi.Controllers.v1
 {
@@ -13,81 +14,74 @@ namespace Test.Backend.WebApi.Controllers.v1
     public class OrderController : ControllerBase
     {
         private readonly ILogger<OrderController> logger;
-        private readonly IMapper mapper;
-        private readonly IOrderService orderService;
+        private readonly KafkaOptions kafkaOptions;
+        private readonly IEventBusService msgBus;
 
-        public OrderController(IOrderService orderService, ILogger<OrderController> logger, IMapper mapper)
+        public OrderController(IEventBusService msgBus, IOptions<KafkaOptions> kafkaOptions, ILogger<OrderController> logger)
         {
-            this.orderService = orderService;
+            this.msgBus = msgBus;
+            this.kafkaOptions = kafkaOptions.Value;
             this.logger = logger;
-            this.mapper = mapper;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([Required] OrderRequest request)
+        public async Task<IActionResult> CreateOrder([Required] OrderRequest request, CancellationToken cancellationToken)
         {
-            var order = mapper.Map<Order>(request);
+            var response = await msgBus.HandleMsgBusMessages<CreateOrderStartedEvent, OrderRequest, CreateOrderResponse>(
+               request,
+               kafkaOptions!.Consumers!.OrderTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            if (order != null)
-            {
-                await orderService.SaveAsync(order);
-
-                return Ok();
-            }
-            else
-                return BadRequest();
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, response?.Dto);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetOrders()
+        public async Task<IActionResult> GetOrders(CancellationToken cancellationToken)
         {
-            var orders = await orderService.GetAsync();
+            var response = await msgBus.HandleMsgBusMessages<GetOrdersStartedEvent, object, GetOrdersResponse>(
+               null,
+               kafkaOptions!.Consumers!.OrderTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            var ordersDto = mapper.Map<List<OrderDto>>(orders);
-
-            return StatusCode(ordersDto != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, ordersDto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetOrderById([Required] Guid id)
+        public async Task<IActionResult> GetOrderById([Required] Guid id, CancellationToken cancellationToken)
         {
-            var orders = await orderService.GetByIdAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<GetOrderStartedEvent, OrderRequest, GetOrderResponse>(
+               new() { Id = id},
+               kafkaOptions!.Consumers!.OrderTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            var orderDto = mapper.Map<OrderDto>(orders);
-
-            return StatusCode(orderDto != null ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, orderDto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateUser([Required] OrderRequest request)
+        public async Task<IActionResult> UpdateUser([Required] OrderRequest request, CancellationToken cancellationToken)
         {
-            var orderDb = await orderService.GetByIdAsync(request.Id);
+            var response = await msgBus.HandleMsgBusMessages<UpdateOrderStartedEvent, OrderRequest, UpdateOrderResponse>(
+               request,
+               kafkaOptions!.Consumers!.OrderTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            if (orderDb != null)
-            {
-                var order = mapper.Map<Order>(request);
-
-                if (order != null)
-                {
-                    await orderService.UpdateAsync(order);
-
-                    return Ok();
-                }
-                else
-                    return BadRequest();
-            }
-            else
-            {
-                return NotFound();
-            }
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteUser([Required] Guid id)
+        public async Task<IActionResult> DeleteUser([Required] Guid id, CancellationToken cancellationToken)
         {
-            var isDeleted = await orderService.DeleteAsync(id);
+            var response = await msgBus.HandleMsgBusMessages<DeleteOrderStartedEvent, OrderRequest, DeleteOrderResponse>(
+               new() { Id = id},
+               kafkaOptions!.Consumers!.OrderTopic!,
+               kafkaOptions!.Producers!.ConsumerTopic!,
+               cancellationToken);
 
-            return StatusCode(isDeleted ? StatusCodes.Status200OK : StatusCodes.Status404NotFound);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
         }
     }
 }

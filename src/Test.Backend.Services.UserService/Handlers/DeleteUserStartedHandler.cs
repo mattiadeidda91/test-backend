@@ -47,7 +47,7 @@ namespace Test.Backend.Services.UserService.Handlers
                 if (isDeleted)
                 {
                     response.IsSuccess = true;
-                    response.Dto = mapper.Map<UserDto>(userDb);
+                    response.Dto = mapper.Map<UserBaseDto>(userDb);
                 }
             }
 

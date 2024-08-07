@@ -1,9 +1,13 @@
-﻿using Microsoft.Extensions.Options;
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using Test.Backend.Abstractions.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.User;
+using Test.Backend.Abstractions.Models.Dto.User.Response;
 using Test.Backend.Abstractions.Models.Events.User;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
+using Test.Backend.Services.UserService.Interfaces;
 
 namespace Test.Backend.Services.UserService.Handlers
 {
@@ -11,20 +15,40 @@ namespace Test.Backend.Services.UserService.Handlers
     {
         private readonly IEventBusService msgBus;
         private readonly KafkaOptions kafkaOptions;
+        private readonly IUserService userService;
+        private readonly IMapper mapper;
+        private readonly ILogger<GetUserStartedHandler> logger;
 
-        public GetUserStartedHandler(IEventBusService msgBus, IOptions<KafkaOptions> kafkaOptions)
+        public GetUserStartedHandler(IEventBusService msgBus, IUserService userService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<GetUserStartedHandler> logger)
         {
             this.msgBus = msgBus;
             this.kafkaOptions = kafkaOptions.Value;
+            this.userService = userService;
+            this.mapper = mapper;
+            this.logger = logger;
         }
 
-        public Task HandleAsync(GetUserStartedEvent @event)
+        public async Task HandleAsync(GetUserStartedEvent @event)
         {
-            Console.WriteLine($"Handling GetUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            logger.LogInformation($"Handling GetUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            msgBus.SendMessage(@event.Activity, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+            GetUserResponse response = new()
+            {
+                IsSuccess = false,
+                Dto = null
+            };
 
-            return Task.CompletedTask;
+            var user = await userService.GetByIdAsync(@event.Activity!.Id);
+
+            if(user != null)
+            {
+                response.IsSuccess = true;
+                response.Dto = mapper.Map<UserDto>(user);
+            }
+
+            //TODO: implement call to OrderService to retrieve Orders for users
+
+            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
         }
     }
 }

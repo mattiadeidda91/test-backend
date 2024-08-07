@@ -1,5 +1,4 @@
-﻿using System;
-using Test.Backend.Abstractions.Interfaces;
+﻿using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Events.User;
 using Test.Backend.Services.UserService.Handlers;
 
