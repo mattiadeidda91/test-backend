@@ -59,7 +59,16 @@ Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
    If this does not happen, you need to launch the **Add-Migration InitialCreate** and then **Update-Database** commands on the Package Manager Console.<br>
    These commands will need to be run for all microservices projects.
 9. Start projects with VisualStudio's Start button.
-10. The controllers are exposed from the swagger page of the WebApi project.<br>
+10. If there are Kafka errors on the consoles when starting the projects, perform the following steps:<br>
+		a. Stop VisualStudio projects.<br>
+		b. Execute this command to restart docker service:<br>
+			**sudo service docker restart**<br>
+		c. Execute this command to stop container:<br>
+			**docker-compose -f '{pathFile}/docker-compose.yml' down -v**<br>
+		d. Execute this command to start container :<br>
+			**docker-compose -f '{pathFile}/docker-compose.yml' up --build -d**<br>
+		e. Restart VisualStudio projects and verify that the error has not recurred.<br>
+11. The controllers are exposed from the swagger page of the WebApi project.<br>
 	To generate an order it is necessary to create all the other entities first.<br>
 	Sequence example:<br>
 		a. Create Category<br>
