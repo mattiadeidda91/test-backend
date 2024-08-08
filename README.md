@@ -55,19 +55,19 @@ Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
 5. Open the solution **test-backend.sln**
 6. In the **appsettings.json** and **appsettings.Development.json** of each microservice add your own connectionString to connect to SqlServer.<br>
    The projects in which you will need to change the connectionString are as follows:<br>
-		a. Test.Backend.Services.AddressService<br>
-		b. Test.Backend.Services.OrderService<br>
-		c. Test.Backend.Services.ProductService<br>
-		d. Test.Backend.Services.UserService<br>
+		a. **Test.Backend.Services.AddressService**<br>
+		b. **Test.Backend.Services.OrderService**<br>
+		c. **Test.Backend.Services.ProductService**<br>
+		d. **Test.Backend.Services.UserService**<br>
 	If you run the project in Debug, you will only need to modify the file **appsettings.Development.json**.<br>
 	It is recommended to only change the Server name of the SqlServer instance without changing the database name.
 7. Startup projects should already be configured, verify in Solution Properties that WebApi projects and all microservices are set as Startup projects.<br>
    If they need to be configured, select the **Multiple startup projects** item and set the **Action** to **Start** for the following projects:<br>
-		a. Test.Backend.WebApi<br>
-		b. Test.Backend.Services.AddressService<br>
-		c. Test.Backend.Services.OrderService<br>
-		d. Test.Backend.Services.ProductService<br>
-		e. Test.Backend.Services.UserService<br>
+		a. **Test.Backend.WebApi**<br>
+		b. **Test.Backend.Services.AddressService**<br>
+		c. **Test.Backend.Services.OrderService**<br>
+		d. **Test.Backend.Services.ProductService**<br>
+		e. **Test.Backend.Services.UserService**<br>
 	Then apply the changes and click OK.
 8. The migration scripts should already be set up in the project and automatically run at startup.<br>
    If this does not happen, you need to launch the **Add-Migration InitialCreate** and then **Update-Database** commands on the Package Manager Console.<br>
