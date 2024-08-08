@@ -17,14 +17,16 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
         private readonly IEventBusService msgBus;
         private readonly KafkaOptions kafkaOptions;
         private readonly IProductService productService;
+        private readonly ICategoryService catagoryService;
         private readonly IMapper mapper;
         private readonly ILogger<CreateProductStartedHandler> logger;
 
-        public CreateProductStartedHandler(IEventBusService msgBus, IProductService productService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<CreateProductStartedHandler> logger)
+        public CreateProductStartedHandler(IEventBusService msgBus, IProductService productService, ICategoryService catagoryService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<CreateProductStartedHandler> logger)
         {
             this.msgBus = msgBus;
             this.kafkaOptions = kafkaOptions.Value;
             this.productService = productService;
+            this.catagoryService= catagoryService;
             this.mapper = mapper;
             this.logger = logger;
         }
@@ -40,13 +42,29 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
             };
 
             var product = mapper.Map<Product>(@event.Activity);
+            var alreadyExists = false;
 
             if (product != null)
             {
-                await productService.SaveAsync(product);
+                if (product.Id != Guid.Empty)
+                {
+                    var productDB = await productService.GetByIdAsync(product.Id);
+                    if (productDB != null)
+                    {
+                        alreadyExists = true;
+                        await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                    }
+                }
 
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
+                var categoryDb = await catagoryService.GetByIdAsync(product.CategoryId);
+
+                if (!alreadyExists && categoryDb != null)
+                {
+                    await productService.SaveAsync(product);
+
+                    response.IsSuccess = true;
+                    response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
+                }
             }
 
             await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

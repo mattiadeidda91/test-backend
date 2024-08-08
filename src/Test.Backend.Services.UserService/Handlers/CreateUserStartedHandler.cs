@@ -40,13 +40,27 @@ namespace Test.Backend.Services.UserService.Handlers
             };
 
             var user = mapper.Map<User>(@event.Activity);
+            var alreadyExists = false;
 
             if (user != null)
             {
-                await userService.SaveAsync(user);
+                if (user.Id != Guid.Empty)
+                {
+                    var userDB = await userService.GetByIdAsync(user.Id);
+                    if (userDB != null)
+                    {
+                        alreadyExists = true;
+                        await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                    }
+                }
 
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<UserBaseDto>(user);
+                if (!alreadyExists)
+                {
+                    await userService.SaveAsync(user);
+
+                    response.IsSuccess = true;
+                    response.Dto = mapper.Map<UserBaseDto>(user);
+                }
             }
 
             await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

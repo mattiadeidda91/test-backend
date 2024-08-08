@@ -40,13 +40,27 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
             };
 
             var category = mapper.Map<Category>(@event.Activity);
+            var alreadyExists = false;
 
             if (category != null)
             {
-                await categoryService.SaveAsync(category);
+                if (category.Id != Guid.Empty)
+                {
+                    var categoryDB = await categoryService.GetByIdAsync(category.Id);
+                    if (categoryDB != null)
+                    {
+                        alreadyExists = true;
+                        await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                    }
+                }
 
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<CategoryBaseDto>(category);
+                if (!alreadyExists)
+                {
+                    await categoryService.SaveAsync(category);
+
+                    response.IsSuccess = true;
+                    response.Dto = mapper.Map<CategoryBaseDto>(category);
+                }
             }
 
             await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

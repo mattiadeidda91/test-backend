@@ -9,6 +9,7 @@ using Test.Backend.Abstractions.Models.Events.Product;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
+using Test.Backend.Services.ProductService.Service;
 
 namespace Test.Backend.Services.ProductService.Handlers.Products
 {
@@ -16,15 +17,17 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
     {
         private readonly IEventBusService msgBus;
         private readonly KafkaOptions kafkaOptions;
+        private readonly ICategoryService catagoryService;
         private readonly IProductService productService;
         private readonly IMapper mapper;
         private readonly ILogger<UpdateProductStartedHandler> logger;
 
-        public UpdateProductStartedHandler(IEventBusService msgBus, IProductService productService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<UpdateProductStartedHandler> logger)
+        public UpdateProductStartedHandler(IEventBusService msgBus, IProductService productService, ICategoryService catagoryService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<UpdateProductStartedHandler> logger)
         {
             this.msgBus = msgBus;
             this.kafkaOptions = kafkaOptions.Value;
             this.productService = productService;
+            this.catagoryService = catagoryService;
             this.mapper = mapper;
             this.logger = logger;
         }
@@ -47,10 +50,15 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
 
                 if (product != null)
                 {
-                    await productService.UpdateAsync(product);
+                    var categoryDb = await catagoryService.GetByIdAsync(product.CategoryId);
 
-                    response.IsSuccess = true;
-                    response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
+                    if (categoryDb != null)
+                    {
+                        await productService.UpdateAsync(product);
+
+                        response.IsSuccess = true;
+                        response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
+                    }
                 }
             }
 

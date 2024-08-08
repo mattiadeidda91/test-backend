@@ -40,13 +40,27 @@ namespace Test.Backend.Services.AddressService.Handlers
             };
 
             var address = mapper.Map<Address>(@event.Activity);
+            var alreadyExists = false;
 
             if (address != null)
             {
-                await addressService.SaveAsync(address);
+                if (address.Id != Guid.Empty)
+                {
+                    var addressDB = await addressService.GetByIdAsync(address.Id);
+                    if (addressDB != null)
+                    {
+                        alreadyExists = true;
+                        await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                    }
+                }
+                
+                if(!alreadyExists)
+                {
+                    await addressService.SaveAsync(address);
 
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<AddressBaseDto>(address);
+                    response.IsSuccess = true;
+                    response.Dto = mapper.Map<AddressBaseDto>(address);
+                }
             }
 
             await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
