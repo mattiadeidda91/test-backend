@@ -22,4 +22,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Test.Backend.Services.UserService\Test.Backend.Services.UserService.csproj" />
+  </ItemGroup>
+
 </Project>
