@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Test.Backend.Abstractions.Models.Dto.Product;
 using Test.Backend.Services.ProductService.Interfaces;
 
-namespace Test.Backend.Services.UserService.Controllers.v1
+namespace Test.Backend.Services.ProductService.Controllers.v1
 {
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
