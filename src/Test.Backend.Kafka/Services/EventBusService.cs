@@ -86,7 +86,6 @@ namespace Test.Backend.Kafka.Services
             }
             catch (ConsumeException e)
             {
-                // Log and handle the exception
                 throw new Exception($"Error consuming message: {e.Message}");
             }
             finally
