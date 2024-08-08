@@ -69,10 +69,14 @@ Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
 		d. **Test.Backend.Services.ProductService**<br>
 		e. **Test.Backend.Services.UserService**<br>
 	Then apply the changes and click OK.
-8. The migration scripts should already be set up in the project and automatically run at startup.<br>
-   If this does not happen, you need to launch the **Add-Migration InitialCreate** and then **Update-Database** commands on the Package Manager Console.<br>
-   These commands will need to be run for all microservices projects.
-9. Start projects with VisualStudio's Start button.
+8. Start projects with VisualStudio's Start button.
+9. The migration scripts should already be set up in the project and automatically run at startup.<br>
+   If databases are not created when starting and opening all projects, you need to launch the **Add-Migration InitialCreate** and then **Update-Database** commands on the Package Manager Console.<br>
+   These commands will need to be run for all microservices projects:<br>
+		a. **Test.Backend.Services.AddressService**<br>
+		b. **Test.Backend.Services.OrderService**<br>
+		c. **Test.Backend.Services.ProductService**<br>
+		d. **Test.Backend.Services.UserService**<br>
 10. If there are Kafka errors on the consoles when starting the projects, perform the following steps:<br>
 		a. Stop VisualStudio projects.<br>
 		b. Execute this command to restart docker service:<br>
