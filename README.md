@@ -86,7 +86,9 @@ Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
 		d. Execute this command to start container :<br>
 			**docker-compose -f '{pathFile}/docker-compose.yml' up --build -d**<br>
 		e. Start VisualStudio projects again and verify that the error has not recurred.<br>
-11. The controllers are exposed from the swagger page of the WebApi project.<br>
+11. Once the projects are all open, verify that the project URLs and ports match within the **appsettings.json** and **appsettings.Development.json** files of the **Test.Backend.Services.OrderService** project.<br>
+	If they differ, you are asked to stop the projects, update the **BaseAddresses** fields for all **Clients** in **HttpRefitPollyOptions** of all the endpoints and restart the project.
+12. The controllers are exposed from the swagger page of the WebApi project.<br>
 	To generate an order it is necessary to create all the other entities first.<br>
 	Sequence example:<br>
 		a. Create Category<br>
