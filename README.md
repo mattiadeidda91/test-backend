@@ -59,7 +59,7 @@ Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
 		b. **Test.Backend.Services.OrderService**<br>
 		c. **Test.Backend.Services.ProductService**<br>
 		d. **Test.Backend.Services.UserService**<br>
-	If you run the project in Debug, you will only need to modify the file **appsettings.Development.json**.<br>
+	If you run the project in Debug, you can only modify the file **appsettings.Development.json**.<br>
 	It is recommended to only change the Server name of the SqlServer instance without changing the database name.
 7. Startup projects should already be configured, verify in Solution Properties that WebApi projects and all microservices are set as Startup projects.<br>
    If they need to be configured, select the **Multiple startup projects** item and set the **Action** to **Start** for the following projects:<br>
@@ -81,7 +81,7 @@ Test.Backend.Services.OrderService -> Test.Backend.Dependencies<br>
 			**docker-compose -f '{pathFile}/docker-compose.yml' down -v**<br>
 		d. Execute this command to start container :<br>
 			**docker-compose -f '{pathFile}/docker-compose.yml' up --build -d**<br>
-		e. Restart VisualStudio projects and verify that the error has not recurred.<br>
+		e. Start VisualStudio projects again and verify that the error has not recurred.<br>
 11. The controllers are exposed from the swagger page of the WebApi project.<br>
 	To generate an order it is necessary to create all the other entities first.<br>
 	Sequence example:<br>
