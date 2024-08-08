@@ -6,6 +6,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.User;
 using Test.Backend.Abstractions.Models.Dto.User.Response;
 using Test.Backend.Abstractions.Models.Events.User;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.HtpClient.Interfaces;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
@@ -32,23 +33,33 @@ namespace Test.Backend.Services.UserService.Handlers
 
         public async Task HandleAsync(GetUsersStartedEvent @event)
         {
-            logger.LogInformation($"Handling GetUsersStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<GetUsersResponse, List<UserDto>>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling GetUsersStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            GetUsersResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   GetUsersResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var users = await userService.GetAsync();
+                   var users = await userService.GetAsync();
 
-            if(users.Any())
-            {
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<List<UserDto>>(users);
-            }
+                   if (users.Any())
+                   {
+                       response.IsSuccess = true;
+                       response.Dto = mapper.Map<List<UserDto>>(users);
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

@@ -5,6 +5,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Product;
 using Test.Backend.Abstractions.Models.Dto.Product.Response;
 using Test.Backend.Abstractions.Models.Events.Product;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
@@ -30,23 +31,33 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
 
         public async Task HandleAsync(GetProductsStartedEvent @event)
         {
-            logger.LogInformation($"Handling GetProductsStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<GetProductsResponse, List<ProductDto>>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling GetProductsStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            GetProductsResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   GetProductsResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var products = await productService.GetAsync();
+                   var products = await productService.GetAsync();
 
-            if (products.Any())
-            {
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<List<ProductDto>>(products);
-            }
+                   if (products.Any())
+                   {
+                       response.IsSuccess = true;
+                       response.Dto = mapper.Map<List<ProductDto>>(products);
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

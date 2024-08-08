@@ -14,6 +14,7 @@ using Test.Backend.Abstractions.Models.Dto.Order;
 using Test.Backend.Abstractions.Models.Entities;
 using Test.Backend.Services.OrderService.Utils;
 using Test.Backend.HtpClient.Interfaces;
+using Test.Backend.Dependencies.Utils;
 
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 
@@ -46,25 +47,35 @@ namespace Test.Backend.Services.OrderService.Handlers
 
         public async Task HandleAsync(GetOrderStartedEvent @event)
         {
-            logger.LogInformation($"Handling GetOrderStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<GetOrderResponse, OrderDto>(
+                async () =>
+                {
+                    logger.LogInformation($"Handling GetOrderStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            GetOrderResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                    GetOrderResponse response = new()
+                    {
+                        IsSuccess = false,
+                        Dto = null
+                    };
 
-            var order = await orderService.GetByIdAsync(@event.Activity!.Id);
+                    var order = await orderService.GetByIdAsync(@event.Activity!.Id);
 
-            if (order != null)
-            {
-                var orderDto = await GetOrdersEntities(order, new CancellationToken());
+                    if (order != null)
+                    {
+                        var orderDto = await GetOrdersEntities(order, new CancellationToken());
 
-                response.IsSuccess = true;
-                response.Dto = orderDto;
-            }
+                        response.IsSuccess = true;
+                        response.Dto = orderDto;
+                    }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                    return response;
+                },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
 
         private async Task<OrderDto> GetOrdersEntities(Order order, CancellationToken cancellationToken)

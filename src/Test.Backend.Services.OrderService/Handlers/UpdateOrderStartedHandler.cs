@@ -5,6 +5,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Order;
 using Test.Backend.Abstractions.Models.Dto.Order.Response;
 using Test.Backend.Abstractions.Models.Events.Order;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.HtpClient.Interfaces;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
@@ -14,9 +15,7 @@ namespace Test.Backend.Services.OrderService.Handlers
 {
     public class UpdateOrderStartedHandler : IEventHandler<UpdateOrderStartedEvent>
     {
-        private readonly IUserHttpClient userHttpClient;
-        private readonly IProductHttpClient productHttpClient;
-        private readonly IAddressHttpClient addressHttpClient;
+        private readonly IOrderEntitesService orderEntitesService;
         private readonly IEventBusService msgBus;
         private readonly KafkaOptions kafkaOptions;
         private readonly IOrderService orderService;
@@ -25,12 +24,9 @@ namespace Test.Backend.Services.OrderService.Handlers
         private readonly ILogger<UpdateOrderStartedHandler> logger;
 
         public UpdateOrderStartedHandler(IEventBusService msgBus, IOrderService orderService, IOrderProductService orderProductService,
-            IUserHttpClient userHttpClient, IProductHttpClient productHttpClient, IAddressHttpClient addressHttpClient,
-            IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<UpdateOrderStartedHandler> logger)
+            IOrderEntitesService orderEntitesService, IMapper mapper, IOptions<KafkaOptions> kafkaOptions, ILogger<UpdateOrderStartedHandler> logger)
         {
-            this.productHttpClient = productHttpClient;
-            this.addressHttpClient = addressHttpClient;
-            this.userHttpClient = userHttpClient;
+            this.orderEntitesService = orderEntitesService;
             this.msgBus = msgBus;
             this.kafkaOptions = kafkaOptions.Value;
             this.orderService = orderService;
@@ -41,63 +37,55 @@ namespace Test.Backend.Services.OrderService.Handlers
 
         public async Task HandleAsync(UpdateOrderStartedEvent @event)
         {
-            logger.LogInformation($"Handling UpdateOrderStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
-
-            UpdateOrderResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
-
-            var orderDb = await orderService.GetByIdAsync(@event.Activity!.Id);
-
-            if (orderDb != null)
-            {
-                foreach(var orderProduct in orderDb.OrderProducts.ToList())
+            await HandlerExceptionUtility.HandleExceptionsAsync<UpdateOrderResponse, OrderDto>(
+                async () =>
                 {
-                    _ = await orderProductService.DeleteAsync(orderProduct);
-                }
+                    logger.LogInformation($"Handling UpdateOrderStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-                var order = mapper.Map(@event.Activity, orderDb);
-
-                if (order != null)
-                {
-                    var orderCanCreate = await CheckExistingEntities(order.UserId, order.DeliveryAddressId, @event.Activity?.ProductIds?.ToList() ?? new List<Guid>());
-
-                    if (orderCanCreate)
+                    UpdateOrderResponse response = new()
                     {
-                        await orderService.UpdateAsync(order);
+                        IsSuccess = false,
+                        Dto = null
+                    };
 
-                        response.IsSuccess = true;
-                        response.Dto = mapper.Map<OrderDto>(order);
+                    var orderDb = await orderService.GetByIdAsync(@event.Activity!.Id);
+
+                    if (orderDb != null)
+                    {
+                        foreach (var orderProduct in orderDb.OrderProducts.ToList())
+                        {
+                            _ = await orderProductService.DeleteAsync(orderProduct);
+                        }
+
+                        var order = mapper.Map(@event.Activity, orderDb);
+
+                        if (order != null)
+                        {
+                            (var orderCanCreate, var userDto, var addressDto, var productsDto) = await orderEntitesService.CheckAndGetExistingEntities(order.UserId, order.DeliveryAddressId, @event.Activity?.ProductIds?.ToList() ?? new List<Guid>());
+
+                            if (orderCanCreate)
+                            {
+                                await orderService.UpdateAsync(order);
+
+                                var orderDto = mapper.Map<OrderDto>(order);
+                                orderDto.User = userDto;
+                                orderDto.Address = addressDto;
+                                orderDto.Products = productsDto;
+
+                                response.IsSuccess = true;
+                                response.Dto = orderDto;
+                            }
+                        }
                     }
-                }
-            }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
 
-        }
-
-        private async Task<bool> CheckExistingEntities(Guid userId, Guid addressId, List<Guid> productsId)
-        {
-            var userDB = await userHttpClient.GetUserByIdAsync(userId);
-
-            if (userDB.Content == null) return false;
-
-            var addressDb = await addressHttpClient.GetAddressByIdAsync(addressId);
-
-            if (addressDb.Content == null) return false;
-
-            if (!productsId.Any()) return false;
-
-            foreach (var productId in productsId)
-            {
-                var productDb = await productHttpClient.GetProductByIdAsync(productId);
-
-                if (productDb.Content == null) return false;
-            }
-
-            return true;
+                    return response;
+                },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

@@ -5,6 +5,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Address;
 using Test.Backend.Abstractions.Models.Dto.Address.Response;
 using Test.Backend.Abstractions.Models.Events.Address;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.AddressService.Interfaces;
@@ -30,23 +31,33 @@ namespace Test.Backend.Services.UserService.Handlers
 
         public async Task HandleAsync(GetAddressesStartedEvent @event)
         {
-            logger.LogInformation($"Handling GetAddressesStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<GetAddressesResponse, List<AddressDto>>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling GetAddressesStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            GetAddressesResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   GetAddressesResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var addresses = await addressService.GetAsync();
+                   var addresses = await addressService.GetAsync();
 
-            if(addresses.Any())
-            {
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<List<AddressDto>>(addresses);
-            }
+                   if (addresses.Any())
+                   {
+                       response.IsSuccess = true;
+                       response.Dto = mapper.Map<List<AddressDto>>(addresses);
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

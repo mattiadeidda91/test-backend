@@ -5,6 +5,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Category;
 using Test.Backend.Abstractions.Models.Dto.Category.Response;
 using Test.Backend.Abstractions.Models.Events.Category;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
@@ -30,28 +31,38 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
 
         public async Task HandleAsync(DeleteCategoryStartedEvent @event)
         {
-            logger.LogInformation($"Handling DeleteCategoryStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<DeleteCategoryResponse, CategoryBaseDto>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling DeleteCategoryStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            DeleteCategoryResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   DeleteCategoryResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var categoryDb = await categoryService.GetByIdAsync(@event.Activity!.Id);
+                   var categoryDb = await categoryService.GetByIdAsync(@event.Activity!.Id);
 
-            if (categoryDb != null)
-            {
-                var isDeleted = await categoryService.DeleteAsync(@event.Activity!.Id);
+                   if (categoryDb != null)
+                   {
+                       var isDeleted = await categoryService.DeleteAsync(@event.Activity!.Id);
 
-                if (isDeleted)
-                {
-                    response.IsSuccess = true;
-                    response.Dto = mapper.Map<CategoryBaseDto>(categoryDb);
-                }
-            }
+                       if (isDeleted)
+                       {
+                           response.IsSuccess = true;
+                           response.Dto = mapper.Map<CategoryBaseDto>(categoryDb);
+                       }
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

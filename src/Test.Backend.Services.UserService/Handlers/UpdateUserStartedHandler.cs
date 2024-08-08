@@ -6,6 +6,7 @@ using Test.Backend.Abstractions.Models.Dto.User;
 using Test.Backend.Abstractions.Models.Dto.User.Response;
 using Test.Backend.Abstractions.Models.Entities;
 using Test.Backend.Abstractions.Models.Events.User;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.UserService.Interfaces;
@@ -31,30 +32,40 @@ namespace Test.Backend.Services.UserService.Handlers
 
         public async Task HandleAsync(UpdateUserStartedEvent @event)
         {
-            logger.LogInformation($"Handling UpdateUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<UpdateUserResponse, UserBaseDto>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling UpdateUserStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            UpdateUserResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   UpdateUserResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var userDb = await userService.GetByIdAsync(@event.Activity!.Id);
+                   var userDb = await userService.GetByIdAsync(@event.Activity!.Id);
 
-            if (userDb != null)
-            {
-                var user = mapper.Map<User>(@event.Activity);
+                   if (userDb != null)
+                   {
+                       var user = mapper.Map<User>(@event.Activity);
 
-                if (user != null)
-                {
-                    await userService.UpdateAsync(user);
+                       if (user != null)
+                       {
+                           await userService.UpdateAsync(user);
 
-                    response.IsSuccess = true;
-                    response.Dto = mapper.Map<UserBaseDto>(user);
-                }
-            }
+                           response.IsSuccess = true;
+                           response.Dto = mapper.Map<UserBaseDto>(user);
+                       }
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
 
         }
     }

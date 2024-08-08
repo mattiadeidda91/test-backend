@@ -5,6 +5,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Address;
 using Test.Backend.Abstractions.Models.Dto.Address.Response;
 using Test.Backend.Abstractions.Models.Events.Address;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.AddressService.Interfaces;
@@ -30,28 +31,38 @@ namespace Test.Backend.Services.AddressService.Handlers
 
         public async Task HandleAsync(DeleteAddressStartedEvent @event)
         {
-            logger.LogInformation($"Handling DeleteAddressStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<DeleteAddressResponse, AddressBaseDto>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling DeleteAddressStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            DeleteAddressResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   DeleteAddressResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var addressDb = await addressService.GetByIdAsync(@event.Activity!.Id);
+                   var addressDb = await addressService.GetByIdAsync(@event.Activity!.Id);
 
-            if (addressDb != null)
-            {
-                var isDeleted = await addressService.DeleteAsync(@event.Activity!.Id);
+                   if (addressDb != null)
+                   {
+                       var isDeleted = await addressService.DeleteAsync(@event.Activity!.Id);
 
-                if (isDeleted)
-                {
-                    response.IsSuccess = true;
-                    response.Dto = mapper.Map<AddressBaseDto>(addressDb);
-                }
-            }
+                       if (isDeleted)
+                       {
+                           response.IsSuccess = true;
+                           response.Dto = mapper.Map<AddressBaseDto>(addressDb);
+                       }
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

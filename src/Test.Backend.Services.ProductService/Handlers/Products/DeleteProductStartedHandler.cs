@@ -5,6 +5,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Product;
 using Test.Backend.Abstractions.Models.Dto.Product.Response;
 using Test.Backend.Abstractions.Models.Events.Product;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
@@ -30,28 +31,38 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
 
         public async Task HandleAsync(DeleteProductStartedEvent @event)
         {
-            logger.LogInformation($"Handling DeleteProductStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<DeleteProductResponse, ProductWithoutOrderDto>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling DeleteProductStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            DeleteProductResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   DeleteProductResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var productDb = await productService.GetByIdAsync(@event.Activity!.Id);
+                   var productDb = await productService.GetByIdAsync(@event.Activity!.Id);
 
-            if (productDb != null)
-            {
-                var isDeleted = await productService.DeleteAsync(@event.Activity!.Id);
+                   if (productDb != null)
+                   {
+                       var isDeleted = await productService.DeleteAsync(@event.Activity!.Id);
 
-                if (isDeleted)
-                {
-                    response.IsSuccess = true;
-                    response.Dto = mapper.Map<ProductWithoutOrderDto>(productDb);
-                }
-            }
+                       if (isDeleted)
+                       {
+                           response.IsSuccess = true;
+                           response.Dto = mapper.Map<ProductWithoutOrderDto>(productDb);
+                       }
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

@@ -5,6 +5,7 @@ using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Category;
 using Test.Backend.Abstractions.Models.Dto.Category.Response;
 using Test.Backend.Abstractions.Models.Events.Category;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
@@ -30,23 +31,33 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
 
         public async Task HandleAsync(GetCategoriesStartedEvent @event)
         {
-            logger.LogInformation($"Handling GetCategoriesStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<GetCategoriesResponse, List<CategoryDto>>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling GetCategoriesStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            GetCategoriesResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   GetCategoriesResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var categories = await categoryService.GetAsync();
+                   var categories = await categoryService.GetAsync();
 
-            if (categories.Any())
-            {
-                response.IsSuccess = true;
-                response.Dto = mapper.Map<List<CategoryDto>>(categories);
-            }
+                   if (categories.Any())
+                   {
+                       response.IsSuccess = true;
+                       response.Dto = mapper.Map<List<CategoryDto>>(categories);
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

@@ -6,6 +6,7 @@ using Test.Backend.Abstractions.Models.Dto.Product;
 using Test.Backend.Abstractions.Models.Dto.Product.Response;
 using Test.Backend.Abstractions.Models.Entities;
 using Test.Backend.Abstractions.Models.Events.Product;
+using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
@@ -34,36 +35,45 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
 
         public async Task HandleAsync(UpdateProductStartedEvent @event)
         {
-            logger.LogInformation($"Handling UpdateProductStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
+            await HandlerExceptionUtility.HandleExceptionsAsync<UpdateProductResponse, ProductWithoutOrderDto>(
+               async () =>
+               {
+                   logger.LogInformation($"Handling UpdateProductStartedEvent: {@event.ActivityId}, {JsonSerializer.Serialize(@event.Activity)}");
 
-            UpdateProductResponse response = new()
-            {
-                IsSuccess = false,
-                Dto = null
-            };
+                   UpdateProductResponse response = new()
+                   {
+                       IsSuccess = false,
+                       Dto = null
+                   };
 
-            var productDb = await productService.GetByIdAsync(@event.Activity!.Id);
+                   var productDb = await productService.GetByIdAsync(@event.Activity!.Id);
 
-            if (productDb != null)
-            {
-                var product = mapper.Map<Product>(@event.Activity);
+                   if (productDb != null)
+                   {
+                       var product = mapper.Map<Product>(@event.Activity);
 
-                if (product != null)
-                {
-                    var categoryDb = await catagoryService.GetByIdAsync(product.CategoryId);
+                       if (product != null)
+                       {
+                           var categoryDb = await catagoryService.GetByIdAsync(product.CategoryId);
 
-                    if (categoryDb != null)
-                    {
-                        await productService.UpdateAsync(product);
+                           if (categoryDb != null)
+                           {
+                               await productService.UpdateAsync(product);
 
-                        response.IsSuccess = true;
-                        response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
-                    }
-                }
-            }
+                               response.IsSuccess = true;
+                               response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
+                           }
+                       }
+                   }
 
-            await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
+                   await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
 
+                   return response;
+               },
+                msgBus,
+                kafkaOptions.Producers!.ConsumerTopic!,
+                @event.CorrelationId!,
+                logger);
         }
     }
 }

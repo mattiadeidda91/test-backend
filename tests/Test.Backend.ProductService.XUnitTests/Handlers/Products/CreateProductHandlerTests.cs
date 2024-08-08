@@ -18,6 +18,7 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
     {
         private readonly Mock<IEventBusService> _msgBusMock;
         private readonly Mock<IProductService> _productServiceMock;
+        private readonly Mock<ICategoryService> _categoryServiceMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<CreateProductStartedHandler>> _loggerMock;
         private readonly Mock<IOptions<KafkaOptions>> _kafkaOptionsMock;
@@ -27,6 +28,7 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
         {
             _msgBusMock = new Mock<IEventBusService>();
             _productServiceMock = new Mock<IProductService>();
+            _categoryServiceMock = new Mock<ICategoryService>();
             _mapperMock = new Mock<IMapper>();
             _loggerMock = new Mock<ILogger<CreateProductStartedHandler>>();
             _kafkaOptionsMock = new Mock<IOptions<KafkaOptions>>();
@@ -41,6 +43,7 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
             _handler = new CreateProductStartedHandler(
                 _msgBusMock.Object,
                 _productServiceMock.Object,
+                _categoryServiceMock.Object,
                 _mapperMock.Object,
                 _kafkaOptionsMock.Object,
                 _loggerMock.Object
@@ -79,6 +82,13 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
                 Price = product.Price
             };
 
+            var categoryDb = new Category
+            {
+                Id = product.CategoryId,
+                Name = "Test Category"
+            };
+
+            _categoryServiceMock.Setup(s => s.GetByIdAsync(product.CategoryId)).ReturnsAsync(categoryDb);
             _mapperMock.Setup(m => m.Map<Product>(createProductEvent.Activity)).Returns(product);
             _mapperMock.Setup(m => m.Map<ProductWithoutOrderDto>(product)).Returns(productDto);
             _productServiceMock.Setup(s => s.SaveAsync(product)).Returns(Task.CompletedTask);

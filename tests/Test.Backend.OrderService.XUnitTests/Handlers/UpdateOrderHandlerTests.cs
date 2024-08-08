@@ -11,6 +11,9 @@ using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.OrderService.Handlers;
 using Test.Backend.Services.OrderService.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.Address;
+using Test.Backend.Abstractions.Models.Dto.Product;
+using Test.Backend.Abstractions.Models.Dto.User;
 
 namespace Test.Backend.OrderService.XUnitTests.Handlers
 {
@@ -19,6 +22,7 @@ namespace Test.Backend.OrderService.XUnitTests.Handlers
         private readonly Mock<IEventBusService> _msgBusMock;
         private readonly Mock<IOrderService> _orderServiceMock;
         private readonly Mock<IOrderProductService> _orderProductServiceMock;
+        private readonly Mock<IOrderEntitesService> _orderEntitesServiceMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<UpdateOrderStartedHandler>> _loggerMock;
         private readonly Mock<IOptions<KafkaOptions>> _kafkaOptionsMock;
@@ -29,6 +33,7 @@ namespace Test.Backend.OrderService.XUnitTests.Handlers
             _msgBusMock = new Mock<IEventBusService>();
             _orderServiceMock = new Mock<IOrderService>();
             _orderProductServiceMock = new Mock<IOrderProductService>();
+            _orderEntitesServiceMock = new Mock<IOrderEntitesService>();
             _mapperMock = new Mock<IMapper>();
             _loggerMock = new Mock<ILogger<UpdateOrderStartedHandler>>();
             _kafkaOptionsMock = new Mock<IOptions<KafkaOptions>>();
@@ -43,6 +48,7 @@ namespace Test.Backend.OrderService.XUnitTests.Handlers
                 _msgBusMock.Object,
                 _orderServiceMock.Object,
                 _orderProductServiceMock.Object,
+                _orderEntitesServiceMock.Object,
                 _mapperMock.Object,
                 _kafkaOptionsMock.Object,
                 _loggerMock.Object
@@ -58,8 +64,10 @@ namespace Test.Backend.OrderService.XUnitTests.Handlers
                 ActivityId = Guid.NewGuid(),
                 Activity = new OrderRequest
                 {
-                    Id = Guid.NewGuid()
-                    // Other properties
+                    Id = Guid.NewGuid(),
+                    UserId = Guid.NewGuid(),
+                    DeliveryAddressId = Guid.NewGuid(),
+                    ProductIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() }
                 },
                 CorrelationId = Guid.NewGuid().ToString()
             };
@@ -68,25 +76,40 @@ namespace Test.Backend.OrderService.XUnitTests.Handlers
             {
                 Id = updateOrderEvent.Activity.Id,
                 OrderProducts = new List<OrderProduct>
-            {
-                new OrderProduct { OrderId = Guid.NewGuid(), ProductId = Guid.NewGuid() }
-            }
+                {
+                    new OrderProduct { OrderId = Guid.NewGuid(), ProductId = Guid.NewGuid() }
+                }
             };
 
             var updatedOrder = new Order
             {
                 Id = updateOrderEvent.Activity.Id,
+                UserId = updateOrderEvent.Activity.UserId,
+                DeliveryAddressId = updateOrderEvent.Activity.DeliveryAddressId
             };
 
             var orderDto = new OrderDto
             {
                 Id = updatedOrder.Id,
+                User = new UserDto { Id = updatedOrder.UserId, FirstName = "Test User" },
+                Address = new AddressDto { Id = updatedOrder.DeliveryAddressId, Street = "Test Street" },
+                Products = new List<ProductDto>
+                {
+                    new ProductDto { Id = Guid.NewGuid(), Name = "Product 1" },
+                    new ProductDto { Id = Guid.NewGuid(), Name = "Product 2" }
+                }
             };
 
             _orderServiceMock.Setup(s => s.GetByIdAsync(updateOrderEvent.Activity.Id)).ReturnsAsync(orderDb);
             _orderProductServiceMock.Setup(s => s.DeleteAsync(It.IsAny<OrderProduct>())).ReturnsAsync(true);
             _mapperMock.Setup(m => m.Map(It.IsAny<OrderRequest>(), It.IsAny<Order>())).Returns(updatedOrder);
             _mapperMock.Setup(m => m.Map<OrderDto>(updatedOrder)).Returns(orderDto);
+            _orderEntitesServiceMock.Setup(s => s.CheckAndGetExistingEntities(
+                updatedOrder.UserId,
+                updatedOrder.DeliveryAddressId,
+                updateOrderEvent.Activity.ProductIds.ToList()
+            )).ReturnsAsync((true, new UserDto(), new AddressDto(), orderDto.Products.ToList()));
+            
             _orderServiceMock.Setup(s => s.UpdateAsync(updatedOrder)).Returns(Task.CompletedTask);
 
             // Act

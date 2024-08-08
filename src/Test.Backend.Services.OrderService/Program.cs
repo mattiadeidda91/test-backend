@@ -4,15 +4,11 @@ using System.Reflection;
 using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Extensions;
 using Test.Backend.Dependencies.Utils;
-using Test.Backend.HtpClient.Extensions;
-using Test.Backend.HtpClient.Interfaces;
 using Test.Backend.Kafka.Configurations;
 using Test.Backend.Services.OrderService.Configurations;
 using Test.Backend.Services.OrderService.DatabaseContext;
 using Test.Backend.Services.OrderService.Extensions;
 using Test.Backend.Services.OrderService.HostedService;
-using Test.Backend.Services.OrderService.Interfaces;
-using Test.Backend.Services.OrderService.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,9 +19,7 @@ var apiVersions = ApiVersionHelper.GetApiVersions(Assembly.GetExecutingAssembly(
 builder.Services.AddEventBusService(builder.Configuration);
 
 //Configure Services
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IOrderProductService, OrderProductService>();
-builder.Services.AddScoped<IOrderDbContext, OrderDbContext>();
+builder.Services.ConfigureServices();
 
 //Add Refit Polly HttpClient
 builder.Services.ConfigureRefitClients(builder.Configuration);

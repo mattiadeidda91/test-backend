@@ -11,6 +11,7 @@ using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Handlers.Products;
 using Test.Backend.Services.ProductService.Interfaces;
+using Test.Backend.Abstractions.Models.Dto.Category;
 
 namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
 {
@@ -19,6 +20,7 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
         private readonly Mock<IEventBusService> _msgBusMock;
         private readonly Mock<IProductService> _productServiceMock;
         private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<ICategoryService> _categoryServiceMock;
         private readonly Mock<ILogger<UpdateProductStartedHandler>> _loggerMock;
         private readonly Mock<IOptions<KafkaOptions>> _kafkaOptionsMock;
         private readonly UpdateProductStartedHandler _handler;
@@ -27,6 +29,7 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
         {
             _msgBusMock = new Mock<IEventBusService>();
             _productServiceMock = new Mock<IProductService>();
+            _categoryServiceMock = new Mock<ICategoryService>();
             _mapperMock = new Mock<IMapper>();
             _loggerMock = new Mock<ILogger<UpdateProductStartedHandler>>();
             _kafkaOptionsMock = new Mock<IOptions<KafkaOptions>>();
@@ -40,6 +43,7 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
             _handler = new UpdateProductStartedHandler(
                 _msgBusMock.Object,
                 _productServiceMock.Object,
+                _categoryServiceMock.Object,
                 _mapperMock.Object,
                 _kafkaOptionsMock.Object,
                 _loggerMock.Object
@@ -86,7 +90,14 @@ namespace Test.Backend.ProductService.XUnitTests.Handlers.Products
                 Price = updatedProduct.Price
             };
 
+            var categoryDb = new Category
+            {
+                Id = updatedProduct.CategoryId,
+                Name = "Test Category"
+            };
+
             _productServiceMock.Setup(s => s.GetByIdAsync(updateProductEvent.Activity.Id)).ReturnsAsync(existingProduct);
+            _categoryServiceMock.Setup(s => s.GetByIdAsync(updatedProduct.CategoryId)).ReturnsAsync(categoryDb);
             _mapperMock.Setup(m => m.Map<Product>(updateProductEvent.Activity)).Returns(updatedProduct);
             _mapperMock.Setup(m => m.Map<ProductWithoutOrderDto>(updatedProduct)).Returns(productDto);
             _productServiceMock.Setup(s => s.UpdateAsync(updatedProduct)).Returns(Task.CompletedTask);
