@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Product;
 using Test.Backend.Abstractions.Models.Dto.Product.Response;
@@ -48,6 +49,11 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
                    {
                        response.IsSuccess = true;
                        response.Dto = mapper.Map<List<ProductDto>>(products);
+                   }
+                   else
+                   {
+                       response.ReturnCode = 404;
+                       response.Messsage = string.Format(ResponseMessages.GetNotFound, "Produts");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

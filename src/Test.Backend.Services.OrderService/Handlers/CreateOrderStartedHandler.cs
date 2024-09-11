@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text.Json;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Address;
 using Test.Backend.Abstractions.Models.Dto.Order;
@@ -62,8 +63,17 @@ namespace Test.Backend.Services.OrderService.Handlers
                             if (orderDB != null)
                             {
                                 alreadyExists = true;
+
+                                response.ReturnCode = 409;
+                                response.Messsage = string.Format(ResponseMessages.Conflict, "Order", order.Id);
+
                                 await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                             }
+                        }
+                        else
+                        {
+                            response.ReturnCode = 400;
+                            response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Order");
                         }
 
                         if (!alreadyExists)
@@ -81,8 +91,15 @@ namespace Test.Backend.Services.OrderService.Handlers
 
                                 response.IsSuccess = true;
                                 response.Dto = orderDto;
+                                response.ReturnCode = 200;
+                                response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Order");
                             }
                         }
+                    }
+                    else
+                    {
+                        response.ReturnCode = 500;
+                        response.Messsage = string.Format(ResponseMessages.MappingNull, "Order");
                     }
 
                     await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

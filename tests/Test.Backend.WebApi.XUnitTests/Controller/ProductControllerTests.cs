@@ -62,7 +62,7 @@ namespace Test.Backend.WebApi.XUnitTests.Controller
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal(response.Dto, okResult.Value);
+            Assert.Equal(response, okResult.Value);
         }
 
         [Fact]
@@ -81,7 +81,7 @@ namespace Test.Backend.WebApi.XUnitTests.Controller
 
             // Assert
             var badRequestResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(400, badRequestResult.StatusCode);
+            Assert.Equal(500, badRequestResult.StatusCode);
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace Test.Backend.WebApi.XUnitTests.Controller
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal(response.Dto, okResult.Value);
+            Assert.Equal(response, okResult.Value);
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace Test.Backend.WebApi.XUnitTests.Controller
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal(response.Dto, okResult.Value);
+            Assert.Equal(response, okResult.Value);
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace Test.Backend.WebApi.XUnitTests.Controller
             // Assert
             var okResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal(response.Dto, okResult.Value);
+            Assert.Equal(response, okResult.Value);
         }
 
         [Fact]
@@ -199,7 +199,7 @@ namespace Test.Backend.WebApi.XUnitTests.Controller
 
             // Assert
             var notFoundResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(404, notFoundResult.StatusCode);
+            Assert.Equal(500, notFoundResult.StatusCode);
         }
 
         [Fact]
@@ -238,7 +238,7 @@ namespace Test.Backend.WebApi.XUnitTests.Controller
 
             // Assert
             var notFoundResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(404, notFoundResult.StatusCode);
+            Assert.Equal(500, notFoundResult.StatusCode);
         }
     }
 }

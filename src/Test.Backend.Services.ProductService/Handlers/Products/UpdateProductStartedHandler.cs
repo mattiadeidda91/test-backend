@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Product;
 using Test.Backend.Abstractions.Models.Dto.Product.Response;
@@ -63,7 +64,22 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
                                response.IsSuccess = true;
                                response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
                            }
+                           else
+                           {
+                               response.ReturnCode = 404;
+                               response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "Category", product.CategoryId);
+                           }
                        }
+                       else
+                       {
+                           response.ReturnCode = 500;
+                           response.Messsage = string.Format(ResponseMessages.GenericError, "Product", "updated");
+                       }
+                   }
+                   else
+                   {
+                       response.ReturnCode = 404;
+                       response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "Product", @event.Activity!.Id);
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

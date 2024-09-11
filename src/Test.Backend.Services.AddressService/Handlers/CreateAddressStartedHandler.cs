@@ -12,6 +12,7 @@ using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.AddressService.Interfaces;
+using Test.Backend.Abstractions.Costants;
 
 namespace Test.Backend.Services.AddressService.Handlers
 {
@@ -56,8 +57,17 @@ namespace Test.Backend.Services.AddressService.Handlers
                            if (addressDB != null)
                            {
                                alreadyExists = true;
+
+                               response.ReturnCode = 409;
+                               response.Messsage = string.Format(ResponseMessages.Conflict, "Address", address.Id);
+
                                await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                            }
+                       }
+                       else
+                       {
+                           response.ReturnCode = 400;
+                           response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Address");
                        }
 
                        if (!alreadyExists)
@@ -66,7 +76,14 @@ namespace Test.Backend.Services.AddressService.Handlers
 
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<AddressBaseDto>(address);
+                           response.ReturnCode = 200;
+                           response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Address");
                        }
+                   }
+                   else
+                   {
+                       response.ReturnCode = 500;
+                       response.Messsage = string.Format(ResponseMessages.MappingNull, "Address");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

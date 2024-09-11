@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Address;
 using Test.Backend.Abstractions.Models.Dto.Address.Response;
@@ -48,6 +49,11 @@ namespace Test.Backend.Services.UserService.Handlers
                    {
                        response.IsSuccess = true;
                        response.Dto = mapper.Map<List<AddressDto>>(addresses);
+                   }
+                   else
+                   {
+                       response.ReturnCode = 404;
+                       response.Messsage = string.Format(ResponseMessages.GetNotFound, "Addresses");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

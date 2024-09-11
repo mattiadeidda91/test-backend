@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.User;
 using Test.Backend.Abstractions.Models.Dto.User.Response;
@@ -53,6 +54,16 @@ namespace Test.Backend.Services.UserService.Handlers
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<UserBaseDto>(userDb);
                        }
+                       else
+                       {
+                           response.ReturnCode = 500;
+                           response.Messsage = string.Format(ResponseMessages.GenericError, "User", "deleted");
+                       }
+                   }
+                   else
+                   {
+                       response.ReturnCode = 404;
+                       response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "User", @event.Activity!.Id);
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

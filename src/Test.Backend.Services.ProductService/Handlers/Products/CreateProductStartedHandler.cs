@@ -12,6 +12,8 @@ using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
+using Test.Backend.Abstractions.Costants;
+using System.Net;
 
 namespace Test.Backend.Services.ProductService.Handlers.Products
 {
@@ -58,8 +60,17 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
                            if (productDB != null)
                            {
                                alreadyExists = true;
+
+                               response.ReturnCode = 409;
+                               response.Messsage = string.Format(ResponseMessages.Conflict, "Product", product.Id);
+
                                await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                            }
+                       }
+                       else
+                       {
+                           response.ReturnCode = 400;
+                           response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Product");
                        }
 
                        var categoryDb = await catagoryService.GetByIdAsync(product.CategoryId);
@@ -70,7 +81,14 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
 
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
+                           response.ReturnCode = 200;
+                           response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Product");
                        }
+                   }
+                   else
+                   {
+                       response.ReturnCode = 500;
+                       response.Messsage = string.Format(ResponseMessages.MappingNull, "Product");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

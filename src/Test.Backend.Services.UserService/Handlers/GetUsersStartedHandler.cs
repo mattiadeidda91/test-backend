@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Threading;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.User;
 using Test.Backend.Abstractions.Models.Dto.User.Response;
@@ -50,6 +51,11 @@ namespace Test.Backend.Services.UserService.Handlers
                    {
                        response.IsSuccess = true;
                        response.Dto = mapper.Map<List<UserDto>>(users);
+                   }
+                   else
+                   {
+                       response.ReturnCode = 404;
+                       response.Messsage = string.Format(ResponseMessages.GetNotFound, "Users");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

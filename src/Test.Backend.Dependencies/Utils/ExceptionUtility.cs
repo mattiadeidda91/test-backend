@@ -28,7 +28,9 @@ namespace Test.Backend.Dependencies.Utils
                 var response = new TResponse
                 {
                     IsSuccess = false,
-                    Dto = null
+                    Dto = null,
+                    Messsage = exception.Message,
+                    ReturnCode = 500
                 };
 
                 await msgBus.SendMessage(response, consumerTopic, new CancellationToken(), correlationId, null);

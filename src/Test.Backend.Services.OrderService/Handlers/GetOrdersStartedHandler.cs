@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Threading;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Order;
 using Test.Backend.Abstractions.Models.Dto.Order.Response;
@@ -64,6 +65,11 @@ namespace Test.Backend.Services.OrderService.Handlers
 
                         response.IsSuccess = true;
                         response.Dto = ordersDto;
+                    }
+                    else
+                    {
+                        response.ReturnCode = 404;
+                        response.Messsage = string.Format(ResponseMessages.GetNotFound, "Orders");
                     }
 
                     await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Category;
 using Test.Backend.Abstractions.Models.Dto.Category.Response;
@@ -56,6 +57,16 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<CategoryBaseDto>(category);
                        }
+                       else
+                       {
+                           response.ReturnCode = 500;
+                           response.Messsage = string.Format(ResponseMessages.GenericError, "Category", "updated");
+                       }
+                   }
+                   else
+                   {
+                       response.ReturnCode = 404;
+                       response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "Category", @event.Activity!.Id);
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

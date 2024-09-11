@@ -33,7 +33,7 @@ namespace Test.Backend.WebApi.Controllers.v1
                kafkaOptions!.Producers!.ConsumerTopic!,
                cancellationToken);
 
-            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, response?.Dto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : response?.ReturnCode ?? StatusCodes.Status500InternalServerError, response);
         }
 
         [HttpGet]
@@ -45,7 +45,7 @@ namespace Test.Backend.WebApi.Controllers.v1
                 kafkaOptions!.Producers!.ConsumerTopic!,
                 cancellationToken);
 
-            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);       
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : response?.ReturnCode ?? StatusCodes.Status404NotFound, response);       
         }
 
         [HttpGet("{id}")]
@@ -57,7 +57,7 @@ namespace Test.Backend.WebApi.Controllers.v1
                 kafkaOptions!.Producers!.ConsumerTopic!,
                 cancellationToken);
 
-            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : response?.ReturnCode ?? StatusCodes.Status404NotFound, response);
         }
 
         [HttpPut]
@@ -69,7 +69,7 @@ namespace Test.Backend.WebApi.Controllers.v1
                 kafkaOptions!.Producers!.ConsumerTopic!,
                 cancellationToken);
 
-            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response?.Dto);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : response?.ReturnCode ?? StatusCodes.Status500InternalServerError, response);
         }
 
         [HttpDelete]
@@ -81,7 +81,7 @@ namespace Test.Backend.WebApi.Controllers.v1
                 kafkaOptions!.Producers!.ConsumerTopic!,
                 cancellationToken);
 
-            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, response);
+            return StatusCode(response?.IsSuccess ?? false ? StatusCodes.Status200OK : response?.ReturnCode ?? StatusCodes.Status500InternalServerError, response);
         }
     }
 }

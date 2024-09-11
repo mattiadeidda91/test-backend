@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Test.Backend.Abstractions.Costants;
 using Test.Backend.Abstractions.Interfaces;
 using Test.Backend.Abstractions.Models.Dto.Order;
 using Test.Backend.Abstractions.Models.Dto.Order.Response;
@@ -53,6 +54,16 @@ namespace Test.Backend.Services.OrderService.Handlers
                             response.IsSuccess = true;
                             response.Dto = mapper.Map<OrderDto>(orderDb);
                         }
+                        else
+                        {
+                            response.ReturnCode = 500;
+                            response.Messsage = string.Format(ResponseMessages.GenericError, "Order", "deleted");
+                        }
+                    }
+                    else
+                    {
+                        response.ReturnCode = 404;
+                        response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "Order", @event.Activity!.Id);
                     }
 
                     await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

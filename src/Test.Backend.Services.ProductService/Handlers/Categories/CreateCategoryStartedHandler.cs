@@ -12,6 +12,7 @@ using Test.Backend.Dependencies.Utils;
 using Test.Backend.Kafka.Interfaces;
 using Test.Backend.Kafka.Options;
 using Test.Backend.Services.ProductService.Interfaces;
+using Test.Backend.Abstractions.Costants;
 
 namespace Test.Backend.Services.ProductService.Handlers.Categories
 {
@@ -56,8 +57,17 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
                            if (categoryDB != null)
                            {
                                alreadyExists = true;
+
+                               response.ReturnCode = 409;
+                               response.Messsage = string.Format(ResponseMessages.Conflict, "Category", category.Id);
+
                                await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                            }
+                       }
+                       else
+                       {
+                           response.ReturnCode = 400;
+                           response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Category");
                        }
 
                        if (!alreadyExists)
@@ -66,7 +76,14 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
 
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<CategoryBaseDto>(category);
+                           response.ReturnCode = 200;
+                           response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Category");
                        }
+                   }
+                   else
+                   {
+                       response.ReturnCode = 500;
+                       response.Messsage = string.Format(ResponseMessages.MappingNull, "Category");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

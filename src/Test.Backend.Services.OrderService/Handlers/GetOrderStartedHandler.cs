@@ -15,6 +15,7 @@ using Test.Backend.Abstractions.Models.Entities;
 using Test.Backend.Services.OrderService.Utils;
 using Test.Backend.HtpClient.Interfaces;
 using Test.Backend.Dependencies.Utils;
+using Test.Backend.Abstractions.Costants;
 
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 
@@ -66,6 +67,11 @@ namespace Test.Backend.Services.OrderService.Handlers
 
                         response.IsSuccess = true;
                         response.Dto = orderDto;
+                    }
+                    else
+                    {
+                        response.ReturnCode = 404;
+                        response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "Order", @event.Activity!.Id);
                     }
 
                     await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

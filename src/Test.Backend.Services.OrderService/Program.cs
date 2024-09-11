@@ -53,7 +53,13 @@ builder.Services.AddSwaggerGen();
 //Add Api versioning using namespace convention
 builder.Services.UseApiVersioningNamespaceConvention();
 
+//Configure HealthChecks
+builder.Services.ConfigureHealthChecks<OrderDbContext>();
+
 var app = builder.Build();
+
+// Add HealthChecks endpoint
+app.MapHealthChecks("/health");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
