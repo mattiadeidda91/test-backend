@@ -46,6 +46,7 @@ namespace Test.Backend.Abstractions.Configurations.Swagger
                 action.Filters.Add(new ProducesAttribute(MediaTypeNames.Application.Json));
                 action.Filters.Add(new ProducesResponseTypeAttribute((int)HttpStatusCode.OK));
                 action.Filters.Add(new ProducesResponseTypeAttribute((int)HttpStatusCode.BadRequest));
+                action.Filters.Add(new ProducesResponseTypeAttribute((int)HttpStatusCode.Conflict));
                 action.Filters.Add(new ProducesResponseTypeAttribute((int)HttpStatusCode.Unauthorized));
                 action.Filters.Add(new ProducesResponseTypeAttribute((int)HttpStatusCode.Forbidden));
                 action.Filters.Add(new ProducesResponseTypeAttribute((int)HttpStatusCode.UnprocessableEntity));

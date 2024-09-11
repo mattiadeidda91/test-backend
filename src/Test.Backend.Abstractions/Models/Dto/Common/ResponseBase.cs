@@ -6,7 +6,7 @@ namespace Test.Backend.Abstractions.Models.Dto.Common
     {
         public T? Dto { get; set; }
         public bool IsSuccess { get; set; }
-        public string? Messsage { get; set; }
+        public string? Message { get; set; }
         public int ReturnCode { get; set; }
     }
 }
