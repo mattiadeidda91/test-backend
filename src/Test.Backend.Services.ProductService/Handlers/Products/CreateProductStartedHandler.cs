@@ -62,7 +62,7 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
                                alreadyExists = true;
 
                                response.ReturnCode = 409;
-                               response.Messsage = string.Format(ResponseMessages.Conflict, "Product", product.Id);
+                               response.Message = string.Format(ResponseMessages.Conflict, "Product", product.Id);
 
                                await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                            }
@@ -70,7 +70,7 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
                        else
                        {
                            response.ReturnCode = 400;
-                           response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Product");
+                           response.Message = string.Format(ResponseMessages.GuidEmpty, "Product");
                        }
 
                        var categoryDb = await catagoryService.GetByIdAsync(product.CategoryId);
@@ -82,13 +82,13 @@ namespace Test.Backend.Services.ProductService.Handlers.Products
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<ProductWithoutOrderDto>(product);
                            response.ReturnCode = 200;
-                           response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Product");
+                           response.Message = string.Format(ResponseMessages.CreatedSuccessfull, "Product");
                        }
                    }
                    else
                    {
                        response.ReturnCode = 500;
-                       response.Messsage = string.Format(ResponseMessages.MappingNull, "Product");
+                       response.Message = string.Format(ResponseMessages.MappingNull, "Product");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

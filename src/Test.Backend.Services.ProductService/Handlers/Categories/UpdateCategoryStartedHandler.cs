@@ -60,13 +60,13 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
                        else
                        {
                            response.ReturnCode = 500;
-                           response.Messsage = string.Format(ResponseMessages.GenericError, "Category", "updated");
+                           response.Message = string.Format(ResponseMessages.GenericError, "Category", "updated");
                        }
                    }
                    else
                    {
                        response.ReturnCode = 404;
-                       response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "Category", @event.Activity!.Id);
+                       response.Message = string.Format(ResponseMessages.GetByIdNotFound, "Category", @event.Activity!.Id);
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

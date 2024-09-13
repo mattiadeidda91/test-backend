@@ -65,7 +65,7 @@ namespace Test.Backend.Services.OrderService.Handlers
                                 alreadyExists = true;
 
                                 response.ReturnCode = 409;
-                                response.Messsage = string.Format(ResponseMessages.Conflict, "Order", order.Id);
+                                response.Message = string.Format(ResponseMessages.Conflict, "Order", order.Id);
 
                                 await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                             }
@@ -73,7 +73,7 @@ namespace Test.Backend.Services.OrderService.Handlers
                         else
                         {
                             response.ReturnCode = 400;
-                            response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Order");
+                            response.Message = string.Format(ResponseMessages.GuidEmpty, "Order");
                         }
 
                         if (!alreadyExists)
@@ -92,14 +92,14 @@ namespace Test.Backend.Services.OrderService.Handlers
                                 response.IsSuccess = true;
                                 response.Dto = orderDto;
                                 response.ReturnCode = 200;
-                                response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Order");
+                                response.Message = string.Format(ResponseMessages.CreatedSuccessfull, "Order");
                             }
                         }
                     }
                     else
                     {
                         response.ReturnCode = 500;
-                        response.Messsage = string.Format(ResponseMessages.MappingNull, "Order");
+                        response.Message = string.Format(ResponseMessages.MappingNull, "Order");
                     }
 
                     await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

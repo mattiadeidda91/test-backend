@@ -59,7 +59,7 @@ namespace Test.Backend.Services.UserService.Handlers
                                alreadyExists = true;
 
                                response.ReturnCode = 409;
-                               response.Messsage = string.Format(ResponseMessages.Conflict, "User", user.Id);
+                               response.Message = string.Format(ResponseMessages.Conflict, "User", user.Id);
 
                                await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                            }
@@ -67,7 +67,7 @@ namespace Test.Backend.Services.UserService.Handlers
                        else
                        {
                            response.ReturnCode = 400;
-                           response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Address");
+                           response.Message = string.Format(ResponseMessages.GuidEmpty, "Address");
                        }
 
                        if (!alreadyExists)
@@ -77,13 +77,13 @@ namespace Test.Backend.Services.UserService.Handlers
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<UserBaseDto>(user);
                            response.ReturnCode = 200;
-                           response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Address");
+                           response.Message = string.Format(ResponseMessages.CreatedSuccessfull, "Address");
                        }
                    }
                    else
                    {
                        response.ReturnCode = 500;
-                       response.Messsage = string.Format(ResponseMessages.MappingNull, "User");
+                       response.Message = string.Format(ResponseMessages.MappingNull, "User");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

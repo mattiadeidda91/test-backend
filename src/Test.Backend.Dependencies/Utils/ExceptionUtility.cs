@@ -29,7 +29,7 @@ namespace Test.Backend.Dependencies.Utils
                 {
                     IsSuccess = false,
                     Dto = null,
-                    Messsage = exception.Message,
+                    Message = exception.Message,
                     ReturnCode = 500
                 };
 

@@ -53,7 +53,7 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
                    else
                    {
                        response.ReturnCode = 404;
-                       response.Messsage = string.Format(ResponseMessages.GetNotFound, "Categories");
+                       response.Message = string.Format(ResponseMessages.GetNotFound, "Categories");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

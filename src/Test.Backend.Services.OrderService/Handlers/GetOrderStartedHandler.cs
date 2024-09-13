@@ -71,7 +71,7 @@ namespace Test.Backend.Services.OrderService.Handlers
                     else
                     {
                         response.ReturnCode = 404;
-                        response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "Order", @event.Activity!.Id);
+                        response.Message = string.Format(ResponseMessages.GetByIdNotFound, "Order", @event.Activity!.Id);
                     }
 
                     await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

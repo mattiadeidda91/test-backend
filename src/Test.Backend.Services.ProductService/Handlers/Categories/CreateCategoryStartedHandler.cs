@@ -59,7 +59,7 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
                                alreadyExists = true;
 
                                response.ReturnCode = 409;
-                               response.Messsage = string.Format(ResponseMessages.Conflict, "Category", category.Id);
+                               response.Message = string.Format(ResponseMessages.Conflict, "Category", category.Id);
 
                                await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
                            }
@@ -67,7 +67,7 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
                        else
                        {
                            response.ReturnCode = 400;
-                           response.Messsage = string.Format(ResponseMessages.GuidEmpty, "Category");
+                           response.Message = string.Format(ResponseMessages.GuidEmpty, "Category");
                        }
 
                        if (!alreadyExists)
@@ -77,13 +77,13 @@ namespace Test.Backend.Services.ProductService.Handlers.Categories
                            response.IsSuccess = true;
                            response.Dto = mapper.Map<CategoryBaseDto>(category);
                            response.ReturnCode = 200;
-                           response.Messsage = string.Format(ResponseMessages.CreatedSuccessfull, "Category");
+                           response.Message = string.Format(ResponseMessages.CreatedSuccessfull, "Category");
                        }
                    }
                    else
                    {
                        response.ReturnCode = 500;
-                       response.Messsage = string.Format(ResponseMessages.MappingNull, "Category");
+                       response.Message = string.Format(ResponseMessages.MappingNull, "Category");
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);

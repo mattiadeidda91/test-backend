@@ -60,13 +60,13 @@ namespace Test.Backend.Services.UserService.Handlers
                        else
                        {
                            response.ReturnCode = 500;
-                           response.Messsage = string.Format(ResponseMessages.GenericError, "User", "updated");
+                           response.Message = string.Format(ResponseMessages.GenericError, "User", "updated");
                        }
                    }
                    else
                    {
                        response.ReturnCode = 404;
-                       response.Messsage = string.Format(ResponseMessages.GetByIdNotFound, "User", @event.Activity!.Id);
+                       response.Message = string.Format(ResponseMessages.GetByIdNotFound, "User", @event.Activity!.Id);
                    }
 
                    await msgBus.SendMessage(response, kafkaOptions.Producers!.ConsumerTopic!, new CancellationToken(), @event.CorrelationId, null);
